@@ -1,25 +1,219 @@
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
-import { Streamdown } from 'streamdown';
+import { Mail, Users, Zap, Heart, Palette, Settings } from "lucide-react";
 
 /**
- * All content in this page are only for example, replace with your own feature implementation
- * When building pages, remember your instructions in Frontend Best Practices, Design Guide and Common Pitfalls
+ * Anom Artsy Home Page
+ * Neon cyberpunk design with high-contrast colors and glowing effects
  */
-export default function Home() {
-  // If theme is switchable in App.tsx, we can implement theme toggling like this:
-  // const { theme, toggleTheme } = useTheme();
 
+export default function Home() {
   return (
-    <div className="min-h-screen flex flex-col">
-      <main>
-        {/* Example: lucide-react for icons */}
-        <Loader2 className="animate-spin" />
-        Example Page
-        {/* Example: Streamdown for markdown rendering */}
-        <Streamdown>Any **markdown** content</Streamdown>
-        <Button variant="default">Example Button</Button>
-      </main>
+    <div className="min-h-screen bg-[#0a0e27] text-white">
+      {/* Header/Navigation */}
+      <header className="border-b-2 border-[#ff00ff] bg-[#0a0e27] sticky top-0 z-50">
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-10 h-10 bg-[#ff00ff] rounded-sm flex items-center justify-center font-bold text-lg glow-magenta">
+              A
+            </div>
+            <span className="font-bold text-xl glow-magenta">ANOM // ARTSY</span>
+          </div>
+          <nav className="hidden md:flex gap-8 items-center text-sm">
+            <a href="#" className="hover:text-[#ff00ff] transition-colors">
+              HOME
+            </a>
+            <a href="#" className="hover:text-[#ff00ff] transition-colors">
+              SANCTUARY
+            </a>
+            <a href="#" className="hover:text-[#ff00ff] transition-colors">
+              EXPLORE
+            </a>
+          </nav>
+          <button className="neon-button text-sm">SIGN IN</button>
+        </div>
+      </header>
+
+      {/* Hero Section */}
+      <section className="container mx-auto px-4 py-20">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          {/* Left Content */}
+          <div className="space-y-6">
+            <div className="inline-block border-2 border-[#ff00ff] px-4 py-2 rounded-sm">
+              <span className="text-xs font-bold text-[#ff00ff] glow-magenta">
+                🎨 ARTIST FIRST PLATFORM
+              </span>
+            </div>
+            <h1 className="text-5xl lg:text-6xl font-bold glow-magenta leading-tight">
+              Identity,<br />
+              Amplified
+            </h1>
+            <p className="text-lg text-[#b0b8d4] max-w-md leading-relaxed">
+              Join the Anom Artsy community — a neon-lit sanctuary where artists first, creativity thrives, and identity is amplified. Create, collaborate, and make world social good impact.
+            </p>
+            <div className="flex gap-4 pt-4">
+              <button className="neon-button">Explore the Universe</button>
+              <button className="px-6 py-3 border-2 border-[#00ffff] text-[#00ffff] rounded-sm hover:bg-[#00ffff]/10 transition-all duration-200">
+                Support Now
+              </button>
+            </div>
+          </div>
+
+          {/* Right - Signup Form */}
+          <div className="border-2 border-[#ff00ff] bg-[#1a1f3a] p-8 rounded-sm space-y-6">
+            <h2 className="text-2xl font-bold glow-magenta">Join Anom Artsy</h2>
+            
+            <div className="space-y-4">
+              <button className="w-full bg-white text-black py-3 rounded-sm font-semibold hover:bg-gray-200 transition-colors flex items-center justify-center gap-2">
+                <span>🔍</span> Sign up with Google
+              </button>
+              <button className="w-full bg-black border-2 border-white text-white py-3 rounded-sm font-semibold hover:bg-gray-900 transition-colors flex items-center justify-center gap-2">
+                <span>⚫</span> Sign up with GitHub
+              </button>
+              <button className="w-full bg-[#ff00ff] text-white py-3 rounded-sm font-semibold hover:bg-[#ff1493] transition-colors flex items-center justify-center gap-2">
+                <span>✉️</span> Sign up with Email
+              </button>
+            </div>
+
+            <p className="text-xs text-[#7a8199] text-center">
+              By signing up, you agree to our <a href="#" className="text-[#00ffff] hover:underline">Terms of Service</a> and <a href="#" className="text-[#00ffff] hover:underline">Privacy Policy</a>
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Social Good Section */}
+      <section className="bg-gradient-to-r from-[#1a1f3a] to-[#2d3557] border-t-2 border-b-2 border-[#ff00ff] py-16">
+        <div className="container mx-auto px-4 text-center space-y-6">
+          <h2 className="text-4xl font-bold">
+            <span className="glow-magenta">Social Good</span>
+            <span className="text-[#00ffff] glow-cyan"> Meets </span>
+            <span className="glow-magenta">Creative Power</span>
+          </h2>
+          <p className="text-lg text-[#b0b8d4] max-w-2xl mx-auto">
+            Every voice earned, every collaboration started, every voice amplified — all artists, creators, and visionaries building a better world together.
+          </p>
+          <button className="neon-button">Explore Our Impact</button>
+        </div>
+      </section>
+
+      {/* Features Grid Section */}
+      <section className="container mx-auto px-4 py-20">
+        <h2 className="text-4xl font-bold text-center mb-16 glow-magenta">
+          What Awaits You
+        </h2>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* Feature Card 1 */}
+          <div className="neon-card group cursor-pointer">
+            <div className="text-3xl mb-4 text-[#00ffff]">💰</div>
+            <h3 className="text-xl font-bold mb-3 text-[#00ffff]">Coin Economy</h3>
+            <p className="text-[#b0b8d4]">
+              Earn coins through social impact, games, and collaborations. Unlock them on profile, merch, and exclusive content.
+            </p>
+          </div>
+
+          {/* Feature Card 2 */}
+          <div className="neon-card group cursor-pointer">
+            <div className="text-3xl mb-4 text-[#ff00ff]">👥</div>
+            <h3 className="text-xl font-bold mb-3 text-[#ff00ff]">Private Lounges</h3>
+            <p className="text-[#b0b8d4]">
+              Create family, friend, and fan channels. Connect, collaborate, and customize your space with friends.
+            </p>
+          </div>
+
+          {/* Feature Card 3 */}
+          <div className="neon-card group cursor-pointer">
+            <div className="text-3xl mb-4 text-[#9d00ff]">🎮</div>
+            <h3 className="text-xl font-bold mb-3 text-[#9d00ff]">Mini-Games</h3>
+            <p className="text-[#b0b8d4]">
+              Play, trivia, memory, mood, mystery, and more. Climb the leaderboard, earn coins, and unlock rewards.
+            </p>
+          </div>
+
+          {/* Feature Card 4 */}
+          <div className="neon-card group cursor-pointer">
+            <div className="text-3xl mb-4 text-[#ff1493]">❤️</div>
+            <h3 className="text-xl font-bold mb-3 text-[#ff1493]">Safe Space</h3>
+            <p className="text-[#b0b8d4]">
+              A safe space for children and teens. Moderated, safe, offline-friendly, and designed for their wellbeing.
+            </p>
+          </div>
+
+          {/* Feature Card 5 */}
+          <div className="neon-card group cursor-pointer">
+            <div className="text-3xl mb-4 text-[#00d9ff]">🎨</div>
+            <h3 className="text-xl font-bold mb-3 text-[#00d9ff]">Profile Customization</h3>
+            <p className="text-[#b0b8d4]">
+              Apply neon themes, character designs, and profile layouts. Customize your space with your unique style.
+            </p>
+          </div>
+
+          {/* Feature Card 6 */}
+          <div className="neon-card group cursor-pointer">
+            <div className="text-3xl mb-4 text-[#ff00ff]">🔧</div>
+            <h3 className="text-xl font-bold mb-3 text-[#ff00ff]">Creator Merch</h3>
+            <p className="text-[#b0b8d4]">
+              Request your designs, fulfill all through our trusted partners. Build your world together.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="bg-gradient-to-b from-[#0a0e27] to-[#1a1f3a] border-t-2 border-[#00ffff] py-20">
+        <div className="container mx-auto px-4 text-center space-y-8">
+          <h2 className="text-4xl font-bold glow-cyan">
+            Ready to join the Anom Universe?
+          </h2>
+          <button className="neon-button text-lg">
+            Start Your Journey
+          </button>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="border-t-2 border-[#ff00ff] bg-[#050812] py-12">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
+            <div>
+              <h4 className="font-bold text-[#ff00ff] mb-4">PLATFORM</h4>
+              <ul className="space-y-2 text-sm text-[#b0b8d4]">
+                <li><a href="#" className="hover:text-[#ff00ff] transition-colors">Explore</a></li>
+                <li><a href="#" className="hover:text-[#ff00ff] transition-colors">Sanctuary</a></li>
+                <li><a href="#" className="hover:text-[#ff00ff] transition-colors">Features</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-bold text-[#00ffff] mb-4">COMMUNITY</h4>
+              <ul className="space-y-2 text-sm text-[#b0b8d4]">
+                <li><a href="#" className="hover:text-[#00ffff] transition-colors">Discord</a></li>
+                <li><a href="#" className="hover:text-[#00ffff] transition-colors">Twitter</a></li>
+                <li><a href="#" className="hover:text-[#00ffff] transition-colors">Instagram</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-bold text-[#9d00ff] mb-4">SUPPORT</h4>
+              <ul className="space-y-2 text-sm text-[#b0b8d4]">
+                <li><a href="#" className="hover:text-[#9d00ff] transition-colors">Help Center</a></li>
+                <li><a href="#" className="hover:text-[#9d00ff] transition-colors">Contact</a></li>
+                <li><a href="#" className="hover:text-[#9d00ff] transition-colors">Report</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-bold text-[#ff1493] mb-4">LEGAL</h4>
+              <ul className="space-y-2 text-sm text-[#b0b8d4]">
+                <li><a href="#" className="hover:text-[#ff1493] transition-colors">Privacy</a></li>
+                <li><a href="#" className="hover:text-[#ff1493] transition-colors">Terms</a></li>
+                <li><a href="#" className="hover:text-[#ff1493] transition-colors">Cookies</a></li>
+              </ul>
+            </div>
+          </div>
+          <div className="border-t border-[#2d3557] pt-8 flex flex-col md:flex-row justify-between items-center text-sm text-[#7a8199]">
+            <p>&copy; 2026 Anom Artsy. All rights reserved.</p>
+            <p>Made with 💜 for creators</p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

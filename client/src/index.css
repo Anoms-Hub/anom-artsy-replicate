@@ -1,6 +1,9 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+/* Google Fonts for Anom Artsy */
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@400;500;600;700;800&display=swap');
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -43,74 +46,77 @@
 }
 
 :root {
-  --primary: var(--color-blue-700);
-  --primary-foreground: var(--color-blue-50);
-  --sidebar-primary: var(--color-blue-600);
-  --sidebar-primary-foreground: var(--color-blue-50);
-  --chart-1: var(--color-blue-300);
-  --chart-2: var(--color-blue-500);
-  --chart-3: var(--color-blue-600);
-  --chart-4: var(--color-blue-700);
-  --chart-5: var(--color-blue-800);
-  --radius: 0.65rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.235 0.015 65);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.235 0.015 65);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.235 0.015 65);
-  --secondary: oklch(0.98 0.001 286.375);
-  --secondary-foreground: oklch(0.4 0.015 65);
-  --muted: oklch(0.967 0.001 286.375);
-  --muted-foreground: oklch(0.552 0.016 285.938);
-  --accent: oklch(0.967 0.001 286.375);
-  --accent-foreground: oklch(0.141 0.005 285.823);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.985 0 0);
-  --border: oklch(0.92 0.004 286.32);
-  --input: oklch(0.92 0.004 286.32);
-  --ring: oklch(0.623 0.214 259.815);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.235 0.015 65);
-  --sidebar-accent: oklch(0.967 0.001 286.375);
-  --sidebar-accent-foreground: oklch(0.141 0.005 285.823);
-  --sidebar-border: oklch(0.92 0.004 286.32);
-  --sidebar-ring: oklch(0.623 0.214 259.815);
+  /* Neon Cyberpunk Colors */
+  --neon-magenta: #ff00ff;
+  --neon-cyan: #00ffff;
+  --neon-purple: #9d00ff;
+  --bg-dark: #0a0e27;
+  --bg-darker: #050812;
+  --bg-card: #1a1f3a;
+  --text-primary: #ffffff;
+  --text-secondary: #b0b8d4;
+  --text-muted: #7a8199;
+  
+  --primary: #ff00ff;
+  --primary-foreground: #ffffff;
+  --sidebar-primary: #ff00ff;
+  --sidebar-primary-foreground: #ffffff;
+  --chart-1: #ff00ff;
+  --chart-2: #00ffff;
+  --chart-3: #9d00ff;
+  --chart-4: #ff1493;
+  --chart-5: #00d9ff;
+  --radius: 0.25rem;
+  --background: #0a0e27;
+  --foreground: #ffffff;
+  --card: #1a1f3a;
+  --card-foreground: #ffffff;
+  --popover: #1a1f3a;
+  --popover-foreground: #ffffff;
+  --secondary: #9d00ff;
+  --secondary-foreground: #ffffff;
+  --muted: #2d3557;
+  --muted-foreground: #b0b8d4;
+  --accent: #ff00ff;
+  --accent-foreground: #ffffff;
+  --destructive: #ff1493;
+  --destructive-foreground: #ffffff;
+  --border: #ff00ff;
+  --input: #1a1f3a;
+  --ring: #00ffff;
+  --sidebar: #0a0e27;
+  --sidebar-foreground: #ffffff;
+  --sidebar-accent: #ff00ff;
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: #ff00ff;
+  --sidebar-ring: #00ffff;
 }
 
 .dark {
-  --primary: var(--color-blue-700);
-  --primary-foreground: var(--color-blue-50);
-  --sidebar-primary: var(--color-blue-500);
-  --sidebar-primary-foreground: var(--color-blue-50);
-  --background: oklch(0.141 0.005 285.823);
-  --foreground: oklch(0.85 0.005 65);
-  --card: oklch(0.21 0.006 285.885);
-  --card-foreground: oklch(0.85 0.005 65);
-  --popover: oklch(0.21 0.006 285.885);
-  --popover-foreground: oklch(0.85 0.005 65);
-  --secondary: oklch(0.24 0.006 286.033);
-  --secondary-foreground: oklch(0.7 0.005 65);
-  --muted: oklch(0.274 0.006 286.033);
-  --muted-foreground: oklch(0.705 0.015 286.067);
-  --accent: oklch(0.274 0.006 286.033);
-  --accent-foreground:  oklch(0.92 0.005 65);
-  --destructive: oklch(0.704 0.191 22.216);
-  --destructive-foreground: oklch(0.985 0 0);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.488 0.243 264.376);
-  --chart-1: var(--color-blue-300);
-  --chart-2: var(--color-blue-500);
-  --chart-3: var(--color-blue-600);
-  --chart-4: var(--color-blue-700);
-  --chart-5: var(--color-blue-800);
-  --sidebar: oklch(0.21 0.006 285.885);
-  --sidebar-foreground: oklch(0.85 0.005 65);
-  --sidebar-accent: oklch(0.274 0.006 286.033);
-  --sidebar-accent-foreground:  oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.488 0.243 264.376);
+  /* Dark theme uses same neon colors */
+  --background: #0a0e27;
+  --foreground: #ffffff;
+  --card: #1a1f3a;
+  --card-foreground: #ffffff;
+  --popover: #1a1f3a;
+  --popover-foreground: #ffffff;
+  --secondary: #9d00ff;
+  --secondary-foreground: #ffffff;
+  --muted: #2d3557;
+  --muted-foreground: #b0b8d4;
+  --accent: #ff00ff;
+  --accent-foreground: #ffffff;
+  --destructive: #ff1493;
+  --destructive-foreground: #ffffff;
+  --border: #ff00ff;
+  --input: #1a1f3a;
+  --ring: #00ffff;
+  --sidebar: #0a0e27;
+  --sidebar-foreground: #ffffff;
+  --sidebar-accent: #ff00ff;
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: #ff00ff;
+  --sidebar-ring: #00ffff;
 }
 
 @layer base {
@@ -119,6 +125,12 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: 'Inter', sans-serif;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    letter-spacing: 0.05em;
   }
   button:not(:disabled),
   [role="button"]:not([aria-disabled="true"]),
@@ -134,6 +146,53 @@
 }
 
 @layer components {
+  /* Neon Glow Effects */
+  .glow-magenta {
+    text-shadow: 0 0 10px rgba(255, 0, 255, 0.8), 0 0 20px rgba(255, 0, 255, 0.6);
+  }
+  
+  .glow-cyan {
+    text-shadow: 0 0 10px rgba(0, 255, 255, 0.8), 0 0 20px rgba(0, 255, 255, 0.6);
+  }
+  
+  .border-glow-magenta {
+    border-color: #ff00ff;
+    box-shadow: 0 0 20px rgba(255, 0, 255, 0.4), inset 0 0 20px rgba(255, 0, 255, 0.1);
+  }
+  
+  .border-glow-cyan {
+    border-color: #00ffff;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.4), inset 0 0 20px rgba(0, 255, 255, 0.1);
+  }
+  
+  .neon-button {
+    @apply px-6 py-3 font-semibold transition-all duration-200 ease-out;
+    background-color: #ff00ff;
+    color: #ffffff;
+    border: 2px solid #ff00ff;
+    box-shadow: 0 0 20px rgba(255, 0, 255, 0.4);
+  }
+  
+  .neon-button:hover {
+    box-shadow: 0 0 30px rgba(255, 0, 255, 0.8), 0 0 40px rgba(255, 0, 255, 0.6);
+    transform: scale(1.02);
+  }
+  
+  .neon-button:active {
+    transform: scale(0.98);
+  }
+  
+  .neon-card {
+    @apply p-6 rounded-sm;
+    background-color: #1a1f3a;
+    border: 2px solid #ff00ff;
+    box-shadow: 0 0 15px rgba(255, 0, 255, 0.3);
+  }
+  
+  .neon-card:hover {
+    box-shadow: 0 0 25px rgba(255, 0, 255, 0.6);
+  }
+  
   /**
    * Custom container utility that centers content and adds responsive padding.
    *
