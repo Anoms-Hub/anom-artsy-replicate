@@ -55,3 +55,21 @@
 - [x] Build Member Profile page (/profile/:username) — being display, SGS bar, awards gallery, like button, visitor log (owner-only)
 - [x] Upgrade Dashboard Profile tab — shows being info, SGS, privilege tier, links to public profile
 - [x] Wire BeingSelectionModal into Dashboard — auto-shows on first login if no being chosen
+
+## Dead Links & Missing Pages (Jul 11 2026 — Session 5)
+- [x] Fix "Complete Mission" buttons — MissionDetailModal with 3-step flow (detail → confirm → success + coin animation)
+- [x] Add Settings page (/settings) — profile bio/username editing, being change shortcut, account info display
+- [x] Build Anom's Corner page (/anoms-corner) — Digital Home section with YouTube, 6 emails, Firefox themes, Gmail/Calendar widgets
+- [x] Add Anom's Corner link to Dashboard hamburger menu
+- [x] Add Settings link to Dashboard user menu (hamburger/profile dropdown)
+- [x] Register /anoms-corner, /work, /services, /settings routes in App.tsx
+
+## Content Migration from anomartsy.xyz (Jul 11 2026 — Session 5)
+- [x] Build Anom's Corner page (/anoms-corner) — personal hub: Tater Nugget, Pixel & Dot, AO Universe lore, creator notes, Digital Home
+- [ ] Build Custom Services page (/services) — digital commissions with PayPal payment links (shell exists at /services, needs real content)
+- [ ] Build Work/Gallery page (/work) — art portfolio showcase with the 6 lanes (shell exists at /work, needs real content)
+- [ ] Build Merch page (/merch) — Spreadshop embed/link, buyer pays own shipping, Printful-fulfilled
+- [x] Add Settings page (/settings) — edit profile bio/username, change being, account info
+- [x] Fix "Complete Mission" buttons — MissionDetailModal with confirm + success flow
+- [x] Wire all new pages into App.tsx routes and Dashboard/Home nav
+- [ ] Update Home page nav to match full site structure (Work, Custom, Merch, Anom's Corner)

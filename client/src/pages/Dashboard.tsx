@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { trpc } from "@/lib/trpc";
 import { Zap, Users, Trophy, Coins, Settings, LogOut, Menu, Gamepad2, Sparkles, Globe, Heart, Star, Shield, ExternalLink } from "lucide-react";
 import { BeingSelectionModal, BEINGS } from "@/components/BeingSelectionModal";
+import { MissionDetailModal } from "@/components/MissionDetailModal";
 import { useState, useEffect, useRef } from "react";
 import { Link } from "wouter";
 
@@ -12,6 +13,7 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<"missions" | "coins" | "profile" | "lounges">("missions");
   const [showMenu, setShowMenu] = useState(false);
   const [earningsFilter, setEarningsFilter] = useState<"all" | "games" | "missions">("all");
+  const [selectedMission, setSelectedMission] = useState<{ id: number; title: string; description: string; category: string; rewardCoins: number | null } | null>(null);
 
   // Fetch data
   const missionsQuery = trpc.missions.getMissions.useQuery();
@@ -204,9 +206,21 @@ export default function Dashboard() {
                     }}
                     className="w-full text-left px-4 py-2 hover:bg-pink-500/20 text-pink-300 flex items-center gap-2"
                   >
-                    <Settings className="w-4 h-4" />
-                    Profile
+                    <Star className="w-4 h-4" />
+                    My Profile
                   </button>
+                  <Link href="/settings" onClick={() => setShowMenu(false)}>
+                    <button className="w-full text-left px-4 py-2 hover:bg-cyan-500/20 text-cyan-300 flex items-center gap-2">
+                      <Settings className="w-4 h-4" />
+                      Settings
+                    </button>
+                  </Link>
+                  <Link href="/anoms-corner" onClick={() => setShowMenu(false)}>
+                    <button className="w-full text-left px-4 py-2 hover:bg-purple-500/20 text-purple-300 flex items-center gap-2">
+                      <Sparkles className="w-4 h-4" />
+                      Anom's Corner
+                    </button>
+                  </Link>
                   <button
                     onClick={() => logout()}
                     className="w-full text-left px-4 py-2 hover:bg-red-500/20 text-red-400 flex items-center gap-2 border-t border-pink-500/30"
@@ -312,15 +326,14 @@ export default function Dashboard() {
                           </span>
                         </div>
                         <Button
-                          onClick={() => completeMissionMutation.mutate({ missionId: mission.id })}
-                          disabled={isCompleted || completeMissionMutation.isPending}
+                          onClick={() => setSelectedMission(mission as any)}
                           className={`w-full ${
                             isCompleted
-                              ? "bg-green-500/30 text-green-300"
+                              ? "bg-green-500/30 text-green-300 cursor-default"
                               : "bg-pink-500 hover:bg-pink-600 text-white"
                           }`}
                         >
-                          {isCompleted ? "✓ Completed" : "Complete Mission"}
+                          {isCompleted ? "✓ Completed" : "View Mission"}
                         </Button>
                       </Card>
                     );
@@ -640,6 +653,17 @@ export default function Dashboard() {
             </Card>
           </div>
         )}
+
+        {/* Mission Detail Modal */}
+        <MissionDetailModal
+          mission={selectedMission}
+          isCompleted={!!myContributionsQuery.data?.some((c) => c.missionId === selectedMission?.id && c.claimed)}
+          onClose={() => setSelectedMission(null)}
+          onComplete={() => {
+            // Don't close — let the modal show the success screen
+            // The modal's "Back to Missions" button calls onClose
+          }}
+        />
 
         {/* Being Selection Modal */}
         <BeingSelectionModal

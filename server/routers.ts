@@ -1,8 +1,9 @@
+import { execSync } from "child_process";
 import { z } from "zod";
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
-import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
+import { adminProcedure, protectedProcedure, publicProcedure, router } from "./_core/trpc";
 import {
   getMissions,
   getMyContributions,
@@ -233,6 +234,87 @@ const loungeRouter = router({
 });
 
 /**
+ * Owner Router - Admin-only integrations (Gmail, Calendar, creator notes)
+ * Only accessible when ctx.user.role === 'admin'
+ */
+function runMcp(server: string, tool: string, input: Record<string, unknown>): unknown {
+  try {
+    const inputJson = JSON.stringify(input);
+    const result = execSync(
+      `manus-mcp-cli tool call ${tool} --server ${server} --input '${inputJson.replace(/'/g, "'\\''")}' 2>/dev/null`,
+      { encoding: "utf-8", timeout: 20000 }
+    );
+    // manus-mcp-cli writes result to a temp file; the stdout is a path notice
+    // The actual data comes from the saved JSON file
+    const pathMatch = result.match(/saved to:\s*(\S+\.json)/);
+    if (pathMatch) {
+      const fileContent = execSync(`cat '${pathMatch[1]}'`, { encoding: "utf-8" });
+      return JSON.parse(fileContent);
+    }
+    return JSON.parse(result);
+  } catch {
+    return null;
+  }
+}
+
+const ownerRouter = router({
+  getInbox: adminProcedure
+    .input(z.object({ q: z.string().default("in:inbox"), maxResults: z.number().default(10) }))
+    .query(async ({ input }) => {
+      const raw = runMcp("gmail", "gmail_search_messages", {
+        q: input.q,
+        max_results: input.maxResults,
+      }) as { messages?: Array<{ subject: string; from: string; date: string; snippet: string; messageId: string; threadId: string; to?: string }> } | null;
+      if (!raw || !Array.isArray((raw as { messages?: unknown[] }).messages)) return [];
+      return (raw as { messages: Array<{ subject: string; from: string; date: string; snippet: string; messageId: string; threadId: string; to?: string }> }).messages.map((m) =>
+        JSON.parse(JSON.stringify(m))
+      );
+    }),
+
+  getCalendar: adminProcedure
+    .input(z.object({ days: z.number().default(7) }))
+    .query(async ({ input }) => {
+      const now = new Date();
+      const end = new Date(now.getTime() + input.days * 24 * 60 * 60 * 1000);
+      const raw = runMcp("google-calendar", "google_calendar_search_events", {
+        time_min: now.toISOString(),
+        time_max: end.toISOString(),
+        max_results: 20,
+      }) as { events?: Array<{ summary: string; description?: string; start: string; end: string; eventId: string; location?: string }> } | null;
+      if (!raw || !Array.isArray((raw as { events?: unknown[] }).events)) return [];
+      return (raw as { events: Array<{ summary: string; description?: string; start: string; end: string; eventId: string; location?: string }> }).events.map((e) =>
+        JSON.parse(JSON.stringify(e))
+      );
+    }),
+
+  sendEmail: adminProcedure
+    .input(z.object({ to: z.string().email(), subject: z.string(), body: z.string() }))
+    .mutation(async ({ input }) => {
+      runMcp("gmail", "gmail_send_messages", {
+        messages: [{ to: input.to, subject: input.subject, body: input.body }],
+      });
+      return { success: true };
+    }),
+
+  createCalendarEvent: adminProcedure
+    .input(z.object({
+      summary: z.string(),
+      description: z.string().optional(),
+      startTime: z.string(), // ISO string
+      endTime: z.string(),
+    }))
+    .mutation(async ({ input }) => {
+      runMcp("google-calendar", "google_calendar_create_events", {
+        summary: input.summary,
+        description: input.description,
+        start: { dateTime: input.startTime },
+        end: { dateTime: input.endTime },
+      });
+      return { success: true };
+    }),
+});
+
+/**
  * Main App Router - Combines all feature routers
  */
 export const appRouter = router({
@@ -253,6 +335,7 @@ export const appRouter = router({
   profiles: profileRouter,
   feed: feedRouter,
   lounges: loungeRouter,
+  owner: ownerRouter,
 });
 
 export type AppRouter = typeof appRouter;
