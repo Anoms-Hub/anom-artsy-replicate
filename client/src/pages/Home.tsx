@@ -1,6 +1,6 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { startLogin } from "@/const";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { CheckCircle } from "lucide-react";
 
@@ -16,9 +16,15 @@ export default function Home() {
   const [, navigate] = useLocation();
   const [showSuccess, setShowSuccess] = useState(false);
 
-  // Redirect to dashboard if already logged in
+  // Redirect to dashboard if already logged in (using useEffect to avoid render-time navigation)
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      navigate("/dashboard");
+    }
+  }, [isAuthenticated, user, navigate]);
+
+  // Don't render anything while redirecting
   if (isAuthenticated && user) {
-    navigate("/dashboard");
     return null;
   }
 
