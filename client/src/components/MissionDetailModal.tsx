@@ -87,11 +87,6 @@ export function MissionDetailModal({ mission, isCompleted, onClose, onComplete }
             <div className="space-y-4">
               <p className="text-sm text-slate-300 leading-relaxed">{mission.description}</p>
 
-              <div className="bg-white/5 rounded-lg p-3 border border-white/10">
-                <p className="text-xs text-slate-500 mb-1">Mission Hint</p>
-                <p className="text-sm text-slate-300">{catInfo.hint}</p>
-              </div>
-
               {/* Reward */}
               <div className="flex items-center justify-between bg-cyan-500/10 border border-cyan-500/30 rounded-lg px-4 py-3">
                 <div className="flex items-center gap-2">
