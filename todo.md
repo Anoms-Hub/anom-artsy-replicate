@@ -46,3 +46,12 @@
 - [x] Build Creator Worlds Registry page (/worlds) — world creation form (5-step), world listing, travel mechanic skeleton
 - [ ] Add worlds table to drizzle schema (name, creatorId, socialGoodPillar, description, tier, status) — UI skeleton done, backend next
 - [x] Wire universe map world nodes to creator worlds registry (Creator Worlds node links to /worlds)
+
+## Member Profile / Being Page (Jul 11 2026 — Session 4)
+- [x] Extend drizzle schema: profileAwards, profileLikes, profileVisitors tables + extended profiles table (beingType, beingName, backgroundId, socialGoodScore, privilegeTier, username)
+- [x] Run pnpm db:push to apply schema changes (all 3 new tables live in DB)
+- [x] Add tRPC procedures: getByUsername, updateBeing, checkUsername, getAwards, grantAward, likeProfile, getLikeStatus, getLikeCount, getRecentVisitors, getMyFullProfile
+- [x] Build Being Selection modal (4 archetypes: Clifford / Tater / X-9 / AO Symbol) — 3-step flow with username + bio setup
+- [x] Build Member Profile page (/profile/:username) — being display, SGS bar, awards gallery, like button, visitor log (owner-only)
+- [x] Upgrade Dashboard Profile tab — shows being info, SGS, privilege tier, links to public profile
+- [x] Wire BeingSelectionModal into Dashboard — auto-shows on first login if no being chosen

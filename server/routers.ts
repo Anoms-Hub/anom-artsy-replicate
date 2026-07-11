@@ -16,6 +16,17 @@ import {
   getLounges,
   createLounge,
   earnCoins,
+  getProfileByUsername,
+  getProfileByUserId,
+  updateMemberProfile,
+  getProfileAwards,
+  grantAward,
+  toggleProfileLike,
+  getProfileLikeCount,
+  hasLikedProfile,
+  recordProfileVisit,
+  getRecentVisitors,
+  isUsernameAvailable,
 } from "./db";
 
 /**
@@ -69,9 +80,10 @@ const coinRouter = router({
 });
 
 /**
- * Profile Router - User profiles and customization
+ * Profile Router - User profiles, being selection, and member showcase
  */
 const profileRouter = router({
+  // Legacy: simple profile for Dashboard
   getProfile: protectedProcedure.query(async ({ ctx }) => {
     return getProfile(ctx.user.id);
   }),
@@ -87,6 +99,87 @@ const profileRouter = router({
     .mutation(async ({ ctx, input }) => {
       return updateProfile(ctx.user.id, input);
     }),
+
+  // Member Profile / Being system
+  getMyFullProfile: protectedProcedure.query(async ({ ctx }) => {
+    return getProfileByUserId(ctx.user.id);
+  }),
+
+  getByUsername: publicProcedure
+    .input(z.object({ username: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const profile = await getProfileByUsername(input.username);
+      if (!profile) return null;
+      // Record visit if logged in and not own profile
+      if (ctx.user && ctx.user.id !== profile.profile.userId) {
+        await recordProfileVisit(profile.profile.userId, ctx.user.id);
+      }
+      return profile;
+    }),
+
+  updateBeing: protectedProcedure
+    .input(
+      z.object({
+        username: z.string().min(3).max(32).regex(/^[a-zA-Z0-9_-]+$/).optional(),
+        bio: z.string().max(280).optional(),
+        photoUrl: z.string().url().optional(),
+        beingType: z.enum(["clifford", "tater", "x9", "ao-symbol"]).optional(),
+        beingName: z.string().min(1).max(64).optional(),
+        backgroundId: z.string().optional(),
+        theme: z.string().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      // Check username availability if changing
+      if (input.username) {
+        const available = await isUsernameAvailable(input.username, ctx.user.id);
+        if (!available) {
+          throw new Error("Username is already taken");
+        }
+      }
+      return updateMemberProfile(ctx.user.id, input);
+    }),
+
+  checkUsername: protectedProcedure
+    .input(z.object({ username: z.string() }))
+    .query(async ({ ctx, input }) => {
+      return { available: await isUsernameAvailable(input.username, ctx.user.id) };
+    }),
+
+  getAwards: publicProcedure
+    .input(z.object({ userId: z.number() }))
+    .query(async ({ input }) => {
+      return getProfileAwards(input.userId);
+    }),
+
+  getMyAwards: protectedProcedure.query(async ({ ctx }) => {
+    return getProfileAwards(ctx.user.id);
+  }),
+
+  likeProfile: protectedProcedure
+    .input(z.object({ toUserId: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.user.id === input.toUserId) throw new Error("Cannot like your own profile");
+      return toggleProfileLike(ctx.user.id, input.toUserId);
+    }),
+
+  getLikeStatus: protectedProcedure
+    .input(z.object({ toUserId: z.number() }))
+    .query(async ({ ctx, input }) => {
+      const liked = await hasLikedProfile(ctx.user.id, input.toUserId);
+      const count = await getProfileLikeCount(input.toUserId);
+      return { liked, count };
+    }),
+
+  getLikeCount: publicProcedure
+    .input(z.object({ userId: z.number() }))
+    .query(async ({ input }) => {
+      return { count: await getProfileLikeCount(input.userId) };
+    }),
+
+  getRecentVisitors: protectedProcedure.query(async ({ ctx }) => {
+    return getRecentVisitors(ctx.user.id, 10);
+  }),
 });
 
 /**

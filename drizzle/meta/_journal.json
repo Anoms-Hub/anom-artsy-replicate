@@ -15,6 +15,13 @@
       "when": 1783801297438,
       "tag": "0001_aromatic_susan_delgado",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1783808883677,
+      "tag": "0002_sharp_zaladane",
+      "breakpoints": true
     }
   ]
 }

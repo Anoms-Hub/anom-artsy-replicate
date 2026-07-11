@@ -37,9 +37,20 @@ export type InsertUser = typeof users.$inferInsert;
 export const profiles = mysqlTable("profiles", {
   id: int("id").autoincrement().primaryKey(),
   userId: int("userId").notNull().unique(),
+  username: varchar("username", { length: 64 }).unique(),
   photoUrl: text("photoUrl"),
   bio: text("bio"),
   theme: varchar("theme", { length: 64 }).default("neon-magenta"),
+  // Being / Avatar identity
+  beingType: mysqlEnum("beingType", ["clifford", "tater", "x9", "ao-symbol"]),
+  beingName: varchar("beingName", { length: 64 }),
+  backgroundId: varchar("backgroundId", { length: 64 }).default("default"),
+  // Social Good Score
+  socialGoodScore: int("socialGoodScore").default(0).notNull(),
+  // Privilege tier (0=newcomer, 1=citizen, 2=member, 3=contributor, 4=guardian)
+  privilegeTier: int("privilegeTier").default(0).notNull(),
+  // Showcase items (pinned content IDs as JSON array)
+  showcaseItems: json("showcaseItems"),
   customizationData: json("customizationData"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
@@ -221,6 +232,59 @@ export type Rating = typeof ratings.$inferSelect;
 export type InsertRating = typeof ratings.$inferInsert;
 
 /**
+ * Profile Awards - Earned badges displayed on member profiles
+ */
+export const profileAwards = mysqlTable("profile_awards", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  awardType: mysqlEnum("awardType", [
+    "patience",
+    "emotion",
+    "community",
+    "creativity",
+    "loyalty",
+    "discovery",
+    "guardian",
+    "financial-literacy",
+    "world-builder",
+    "ao-symbol"
+  ]).notNull(),
+  awardName: varchar("awardName", { length: 128 }).notNull(),
+  description: text("description"),
+  isDisplayed: boolean("isDisplayed").default(true).notNull(),
+  earnedAt: timestamp("earnedAt").defaultNow().notNull(),
+});
+
+export type ProfileAward = typeof profileAwards.$inferSelect;
+export type InsertProfileAward = typeof profileAwards.$inferInsert;
+
+/**
+ * Profile Likes - Members leaving hearts on other members' profiles
+ */
+export const profileLikes = mysqlTable("profile_likes", {
+  id: int("id").autoincrement().primaryKey(),
+  fromUserId: int("fromUserId").notNull(),
+  toUserId: int("toUserId").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type ProfileLike = typeof profileLikes.$inferSelect;
+export type InsertProfileLike = typeof profileLikes.$inferInsert;
+
+/**
+ * Profile Visitors - Private log of who visited a member's profile
+ */
+export const profileVisitors = mysqlTable("profile_visitors", {
+  id: int("id").autoincrement().primaryKey(),
+  profileUserId: int("profileUserId").notNull(),
+  visitorUserId: int("visitorUserId").notNull(),
+  visitedAt: timestamp("visitedAt").defaultNow().notNull(),
+});
+
+export type ProfileVisitor = typeof profileVisitors.$inferSelect;
+export type InsertProfileVisitor = typeof profileVisitors.$inferInsert;
+
+/**
  * Relations for type safety
  */
 export const usersRelations = relations(users, ({ one, many }) => ({
@@ -240,6 +304,11 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   feedPosts: many(feedPosts),
   postLikes: many(postLikes),
   ratingsGiven: many(ratings),
+  profileAwards: many(profileAwards),
+  profileLikesGiven: many(profileLikes, { relationName: "likesGiven" }),
+  profileLikesReceived: many(profileLikes, { relationName: "likesReceived" }),
+  profileVisits: many(profileVisitors, { relationName: "profileVisits" }),
+  profileVisitors: many(profileVisitors, { relationName: "profileVisitors" }),
 }));
 
 export const profilesRelations = relations(profiles, ({ one }) => ({
@@ -328,5 +397,38 @@ export const ratingsRelations = relations(ratings, ({ one }) => ({
   rater: one(users, {
     fields: [ratings.raterId],
     references: [users.id],
+  }),
+}));
+
+export const profileAwardsRelations = relations(profileAwards, ({ one }) => ({
+  user: one(users, {
+    fields: [profileAwards.userId],
+    references: [users.id],
+  }),
+}));
+
+export const profileLikesRelations = relations(profileLikes, ({ one }) => ({
+  fromUser: one(users, {
+    fields: [profileLikes.fromUserId],
+    references: [users.id],
+    relationName: "likesGiven",
+  }),
+  toUser: one(users, {
+    fields: [profileLikes.toUserId],
+    references: [users.id],
+    relationName: "likesReceived",
+  }),
+}));
+
+export const profileVisitorsRelations = relations(profileVisitors, ({ one }) => ({
+  profileUser: one(users, {
+    fields: [profileVisitors.profileUserId],
+    references: [users.id],
+    relationName: "profileVisits",
+  }),
+  visitor: one(users, {
+    fields: [profileVisitors.visitorUserId],
+    references: [users.id],
+    relationName: "profileVisitors",
   }),
 }));

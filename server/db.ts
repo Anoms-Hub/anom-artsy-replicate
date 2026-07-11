@@ -11,6 +11,9 @@ import {
   loungeMembers,
   feedPosts,
   ratings,
+  profileAwards,
+  profileLikes,
+  profileVisitors,
   type InsertUser,
   type User,
   type Coin,
@@ -355,4 +358,156 @@ export async function createLounge(
     .orderBy(sql`${lounges.createdAt} DESC`)
     .limit(1);
   return loungeList.length > 0 ? loungeList[0] : null;
+}
+
+// ─── Member Profile / Being System ───────────────────────────────────────────
+
+export async function getProfileByUsername(username: string) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db
+    .select({
+      profile: profiles,
+      user: { id: users.id, name: users.name, createdAt: users.createdAt },
+      coinBalance: coins.balance,
+      totalEarned: coins.totalEarned,
+    })
+    .from(profiles)
+    .innerJoin(users, eq(profiles.userId, users.id))
+    .leftJoin(coins, eq(profiles.userId, coins.userId))
+    .where(eq(profiles.username, username))
+    .limit(1);
+  if (!result[0]) return null;
+  return JSON.parse(JSON.stringify(result[0]));
+}
+
+export async function getProfileByUserId(userId: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db
+    .select({
+      profile: profiles,
+      user: { id: users.id, name: users.name, createdAt: users.createdAt },
+      coinBalance: coins.balance,
+      totalEarned: coins.totalEarned,
+    })
+    .from(profiles)
+    .innerJoin(users, eq(profiles.userId, users.id))
+    .leftJoin(coins, eq(profiles.userId, coins.userId))
+    .where(eq(profiles.userId, userId))
+    .limit(1);
+  if (!result[0]) return null;
+  return JSON.parse(JSON.stringify(result[0]));
+}
+
+export async function updateMemberProfile(
+  userId: number,
+  data: {
+    username?: string;
+    bio?: string;
+    photoUrl?: string;
+    beingType?: "clifford" | "tater" | "x9" | "ao-symbol";
+    beingName?: string;
+    backgroundId?: string;
+    theme?: string;
+  }
+) {
+  const db = await getDb();
+  if (!db) return null;
+  await db.update(profiles).set({ ...data }).where(eq(profiles.userId, userId));
+  return getProfileByUserId(userId);
+}
+
+export async function getProfileAwards(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  const result = await db
+    .select()
+    .from(profileAwards)
+    .where(eq(profileAwards.userId, userId))
+    .orderBy(profileAwards.earnedAt);
+  return JSON.parse(JSON.stringify(result));
+}
+
+export async function grantAward(
+  userId: number,
+  awardType: typeof profileAwards.$inferInsert["awardType"],
+  awardName: string,
+  description?: string
+) {
+  const db = await getDb();
+  if (!db) return null;
+  const existing = await db.select().from(profileAwards).where(eq(profileAwards.userId, userId)).limit(50);
+  const alreadyHas = existing.some((a) => a.awardType === awardType);
+  if (alreadyHas) return null;
+  await db.insert(profileAwards).values({ userId, awardType, awardName, description });
+  return true;
+}
+
+export async function toggleProfileLike(fromUserId: number, toUserId: number) {
+  const db = await getDb();
+  if (!db) return { liked: false };
+  const existing = await db
+    .select()
+    .from(profileLikes)
+    .where(eq(profileLikes.fromUserId, fromUserId))
+    .limit(200);
+  const alreadyLiked = existing.some((l) => l.toUserId === toUserId);
+  if (alreadyLiked) {
+    // Delete only the specific like between these two users
+    await db
+      .delete(profileLikes)
+      .where(
+        sql`${profileLikes.fromUserId} = ${fromUserId} AND ${profileLikes.toUserId} = ${toUserId}`
+      );
+    return { liked: false };
+  }
+  await db.insert(profileLikes).values({ fromUserId, toUserId });
+  return { liked: true };
+}
+
+export async function getProfileLikeCount(toUserId: number) {
+  const db = await getDb();
+  if (!db) return 0;
+  const result = await db.select().from(profileLikes).where(eq(profileLikes.toUserId, toUserId));
+  return result.length;
+}
+
+export async function hasLikedProfile(fromUserId: number, toUserId: number) {
+  const db = await getDb();
+  if (!db) return false;
+  const result = await db.select().from(profileLikes).where(eq(profileLikes.fromUserId, fromUserId)).limit(200);
+  return result.some((l) => l.toUserId === toUserId);
+}
+
+export async function recordProfileVisit(profileUserId: number, visitorUserId: number) {
+  if (profileUserId === visitorUserId) return;
+  const db = await getDb();
+  if (!db) return;
+  await db.insert(profileVisitors).values({ profileUserId, visitorUserId });
+}
+
+export async function getRecentVisitors(profileUserId: number, limit = 10) {
+  const db = await getDb();
+  if (!db) return [];
+  const result = await db
+    .select({
+      visitor: { id: users.id, name: users.name },
+      visitedAt: profileVisitors.visitedAt,
+    })
+    .from(profileVisitors)
+    .innerJoin(users, eq(profileVisitors.visitorUserId, users.id))
+    .where(eq(profileVisitors.profileUserId, profileUserId))
+    .orderBy(sql`${profileVisitors.visitedAt} DESC`)
+    .limit(limit);
+  return JSON.parse(JSON.stringify(result));
+}
+
+export async function isUsernameAvailable(username: string, excludeUserId?: number) {
+  const db = await getDb();
+  if (!db) return true;
+  const result = await db.select({ id: profiles.id, userId: profiles.userId }).from(profiles).where(eq(profiles.username, username)).limit(1);
+  if (!result[0]) return true;
+  if (excludeUserId && result[0].userId === excludeUserId) return true;
+  return false;
 }

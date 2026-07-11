@@ -2,7 +2,8 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { trpc } from "@/lib/trpc";
-import { Zap, Users, Trophy, Coins, Settings, LogOut, Menu, Gamepad2, Sparkles, Globe } from "lucide-react";
+import { Zap, Users, Trophy, Coins, Settings, LogOut, Menu, Gamepad2, Sparkles, Globe, Heart, Star, Shield, ExternalLink } from "lucide-react";
+import { BeingSelectionModal, BEINGS } from "@/components/BeingSelectionModal";
 import { useState, useEffect, useRef } from "react";
 import { Link } from "wouter";
 
@@ -21,6 +22,14 @@ export default function Dashboard() {
   const loungesQuery = trpc.lounges.getLounges.useQuery();
 
   const utils = trpc.useUtils();
+
+  // Full profile for being system
+  const fullProfileQuery = trpc.profiles.getMyFullProfile.useQuery();
+  const [showBeingModal, setShowBeingModal] = useState(false);
+
+  // Show being selection modal if user has no being chosen yet
+  const hasChosenBeing = !!fullProfileQuery.data?.profile?.beingType;
+  const needsBeingSelection = fullProfileQuery.isSuccess && !hasChosenBeing;
 
   // Track previous balance to animate changes
   const prevBalanceRef = useRef<number>(0);
@@ -535,34 +544,109 @@ export default function Dashboard() {
 
         {/* Profile Tab */}
         {activeTab === "profile" && (
-          <div className="max-w-2xl">
-            <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-cyan-500 mb-6">
-              Your Profile
+          <div className="max-w-2xl space-y-6">
+            <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-cyan-500">
+              Your Being
             </h2>
+
+            {/* Being Card */}
+            {(() => {
+              const fp = fullProfileQuery.data;
+              const beingMeta = fp?.profile?.beingType ? BEINGS.find(b => b.id === fp.profile.beingType) : null;
+              return (
+                <Card className="bg-black/60 border-pink-500/30 p-6">
+                  {beingMeta ? (
+                    <div className="space-y-4">
+                      <div className={`flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r ${beingMeta.gradient} border ${beingMeta.borderColor}`}>
+                        <div className={`text-4xl`}>{beingMeta.emoji}</div>
+                        <div>
+                          <div className="font-bold text-white text-lg">{fp?.profile?.beingName || beingMeta.name}</div>
+                          <div className={`text-sm ${beingMeta.color}`}>{beingMeta.title}</div>
+                          {fp?.profile?.username && (
+                            <div className="text-xs text-gray-400 mt-0.5">@{fp.profile.username}</div>
+                          )}
+                        </div>
+                      </div>
+
+                      {fp?.profile?.bio && (
+                        <p className="text-gray-300 text-sm">{fp.profile.bio}</p>
+                      )}
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="bg-white/5 rounded-lg p-3">
+                          <div className="flex items-center gap-1 text-xs text-gray-400 mb-1"><Star className="w-3 h-3 text-yellow-400" /> Social Good Score</div>
+                          <div className="text-xl font-bold text-yellow-400">{fp?.profile?.socialGoodScore ?? 0}</div>
+                        </div>
+                        <div className="bg-white/5 rounded-lg p-3">
+                          <div className="flex items-center gap-1 text-xs text-gray-400 mb-1"><Shield className="w-3 h-3 text-cyan-400" /> Privilege Tier</div>
+                          <div className="text-xl font-bold text-cyan-400">{["Newcomer","Citizen","Member","Contributor","Guardian"][fp?.profile?.privilegeTier ?? 0]}</div>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="border-pink-500/40 text-pink-300 hover:bg-pink-500/20"
+                          onClick={() => setShowBeingModal(true)}
+                        >
+                          Change Being
+                        </Button>
+                        {fp?.profile?.username && (
+                          <Link href={`/profile/${fp.profile.username}`}>
+                            <Button size="sm" className="bg-purple-600 hover:bg-purple-500 text-white gap-1">
+                              <ExternalLink className="w-3 h-3" /> View Public Profile
+                            </Button>
+                          </Link>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center py-6 space-y-3">
+                      <div className="text-4xl">🌌</div>
+                      <h3 className="font-bold text-white">You haven't chosen your being yet</h3>
+                      <p className="text-gray-400 text-sm">Your being is your identity across all worlds in the AO Universe.</p>
+                      <Button
+                        onClick={() => setShowBeingModal(true)}
+                        className="bg-purple-600 hover:bg-purple-500 text-white gap-2"
+                      >
+                        <Sparkles className="w-4 h-4" /> Choose Your Being
+                      </Button>
+                    </div>
+                  )}
+                </Card>
+              );
+            })()}
+
+            {/* Basic account info */}
             <Card className="bg-black/60 border-pink-500/30 p-6">
-              <div className="space-y-4">
+              <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-4">Account Info</h3>
+              <div className="space-y-3">
                 <div>
-                  <label className="block text-sm text-gray-400 mb-2">Name</label>
-                  <p className="text-lg text-pink-300">{user.name || "Not set"}</p>
+                  <label className="block text-xs text-gray-500 mb-1">Name</label>
+                  <p className="text-pink-300">{user.name || "Not set"}</p>
                 </div>
                 <div>
-                  <label className="block text-sm text-gray-400 mb-2">Email</label>
-                  <p className="text-lg text-cyan-300">{user.email || "Not set"}</p>
+                  <label className="block text-xs text-gray-500 mb-1">Email</label>
+                  <p className="text-cyan-300">{user.email || "Not set"}</p>
                 </div>
                 <div>
-                  <label className="block text-sm text-gray-400 mb-2">Member Since</label>
-                  <p className="text-lg text-gray-300">{new Date(user.createdAt).toLocaleDateString()}</p>
+                  <label className="block text-xs text-gray-500 mb-1">Member Since</label>
+                  <p className="text-gray-300">{new Date(user.createdAt).toLocaleDateString()}</p>
                 </div>
-                {profileQuery.data && (
-                  <div>
-                    <label className="block text-sm text-gray-400 mb-2">Bio</label>
-                    <p className="text-lg text-gray-300">{profileQuery.data.bio || "No bio yet"}</p>
-                  </div>
-                )}
               </div>
             </Card>
           </div>
         )}
+
+        {/* Being Selection Modal */}
+        <BeingSelectionModal
+          open={showBeingModal || needsBeingSelection}
+          onComplete={() => {
+            setShowBeingModal(false);
+            utils.profiles.getMyFullProfile.invalidate();
+          }}
+        />
       </main>
     </div>
   );

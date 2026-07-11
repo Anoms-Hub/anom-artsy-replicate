@@ -10,6 +10,7 @@ import Games from "./pages/Games";
 import UniverseMap from "./pages/UniverseMap";
 import FinancialDistrict from "./pages/FinancialDistrict";
 import CreatorWorlds from "./pages/CreatorWorlds";
+import MemberProfile from "./pages/MemberProfile";
 
 function Router() {
   return (
@@ -20,6 +21,7 @@ function Router() {
       <Route path={"/universe"} component={UniverseMap} />
       <Route path={"/financial-district"} component={FinancialDistrict} />
       <Route path={"/worlds"} component={CreatorWorlds} />
+      <Route path={"/profile/:username"} component={MemberProfile} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
