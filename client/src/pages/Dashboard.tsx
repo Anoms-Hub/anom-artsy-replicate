@@ -2,8 +2,8 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { trpc } from "@/lib/trpc";
-import { Zap, Users, Trophy, Coins, Settings, LogOut, Menu, Gamepad2 } from "lucide-react";
-import { useState } from "react";
+import { Zap, Users, Trophy, Coins, Settings, LogOut, Menu, Gamepad2, Sparkles } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
 import { Link } from "wouter";
 
 export default function Dashboard() {
@@ -19,13 +19,31 @@ export default function Dashboard() {
   const profileQuery = trpc.profiles.getProfile.useQuery();
   const loungesQuery = trpc.lounges.getLounges.useQuery();
 
-  // Mutations
+  const utils = trpc.useUtils();
+
+  // Track previous balance to animate changes
+  const prevBalanceRef = useRef<number>(0);
+  const [balanceFlash, setBalanceFlash] = useState(false);
+
+  const currentBalance = coinBalanceQuery.data
+    ? Math.floor(parseFloat(coinBalanceQuery.data.balance?.toString() || "0"))
+    : 0;
+
+  useEffect(() => {
+    if (currentBalance > prevBalanceRef.current && prevBalanceRef.current !== 0) {
+      setBalanceFlash(true);
+      setTimeout(() => setBalanceFlash(false), 1200);
+    }
+    prevBalanceRef.current = currentBalance;
+  }, [currentBalance]);
+
+  // Mutations — use cache invalidation for instant UI refresh
   const completeMissionMutation = trpc.missions.completeMission.useMutation({
     onSuccess: () => {
-      missionsQuery.refetch();
-      myContributionsQuery.refetch();
-      coinBalanceQuery.refetch();
-      coinHistoryQuery.refetch();
+      utils.missions.getMissions.invalidate();
+      utils.missions.getMyContributions.invalidate();
+      utils.coins.getBalance.invalidate();
+      utils.coins.getHistory.invalidate();
     },
   });
 
@@ -60,15 +78,24 @@ export default function Dashboard() {
           </div>
 
           <div className="flex items-center gap-4">
-            {/* Coin Balance Display */}
-            <div className="hidden md:flex items-center gap-2 bg-black/60 px-4 py-2 rounded border border-cyan-500/30">
-              <Coins className="w-5 h-5 text-cyan-400" />
+            {/* Coin Balance Display — flashes when balance increases */}
+            <div
+              className={`hidden md:flex items-center gap-2 bg-black/60 px-4 py-2 rounded border transition-all duration-300 ${
+                balanceFlash
+                  ? "border-yellow-400/80 shadow-[0_0_12px_rgba(250,204,21,0.5)]"
+                  : "border-cyan-500/30"
+              }`}
+            >
+              <Coins className={`w-5 h-5 transition-colors duration-300 ${balanceFlash ? "text-yellow-400" : "text-cyan-400"}`} />
               <div>
                 <p className="text-xs text-gray-400">Balance</p>
-                <p className="text-lg font-bold text-cyan-400">
-                  {coinBalanceQuery.data ? Math.floor(parseFloat(coinBalanceQuery.data.balance?.toString() || "0")) : 0}
+                <p className={`text-lg font-bold transition-colors duration-300 ${balanceFlash ? "text-yellow-400" : "text-cyan-400"}`}>
+                  {currentBalance}
                 </p>
               </div>
+              {balanceFlash && (
+                <Sparkles className="w-4 h-4 text-yellow-300 animate-spin" />
+              )}
             </div>
 
             {/* User Menu */}
@@ -235,6 +262,61 @@ export default function Dashboard() {
                 </div>
               ) : (
                 <p className="text-gray-400">No contributions yet. Complete a mission to get started!</p>
+              )}
+            </div>
+
+            {/* Recent Earnings Activity Feed */}
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <Sparkles className="w-5 h-5 text-yellow-400" />
+                <h3 className="text-xl font-bold text-yellow-300">Recent Earnings</h3>
+              </div>
+              {coinHistoryQuery.isLoading ? (
+                <p className="text-gray-400 text-sm">Loading activity...</p>
+              ) : coinHistoryQuery.data && coinHistoryQuery.data.length > 0 ? (
+                <div className="space-y-2">
+                  {coinHistoryQuery.data.slice(0, 5).map((tx) => {
+                    const isGame = tx.source?.startsWith("Game:");
+                    return (
+                      <div
+                        key={tx.id}
+                        className="bg-black/60 border border-yellow-500/20 p-3 rounded flex justify-between items-center hover:border-yellow-400/40 transition"
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="text-lg">{isGame ? "🎮" : "🏆"}</span>
+                          <div>
+                            <p className="text-yellow-200 font-semibold text-sm">{tx.source}</p>
+                            <p className="text-xs text-gray-500">
+                              {new Date(tx.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-bold text-yellow-400">+{tx.amount}</p>
+                          <p className="text-xs text-gray-500">→ {tx.balanceAfter} total</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                  {coinHistoryQuery.data.length > 5 && (
+                    <button
+                      onClick={() => setActiveTab("coins")}
+                      className="text-xs text-cyan-400 hover:text-cyan-300 transition mt-1"
+                    >
+                      View all {coinHistoryQuery.data.length} transactions →
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <div className="bg-black/40 border border-yellow-500/10 rounded p-4 text-center">
+                  <p className="text-gray-500 text-sm">No earnings yet.</p>
+                  <p className="text-gray-600 text-xs mt-1">Complete missions or play games to earn coins!</p>
+                  <Link href="/games">
+                    <button className="mt-3 text-xs text-purple-400 hover:text-purple-300 transition">
+                      🎮 Go to Games Hub →
+                    </button>
+                  </Link>
+                </div>
               )}
             </div>
           </div>

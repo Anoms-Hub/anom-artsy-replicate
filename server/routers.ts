@@ -15,6 +15,7 @@ import {
   createFeedPost,
   getLounges,
   createLounge,
+  earnCoins,
 } from "./db";
 
 /**
@@ -33,6 +34,22 @@ const missionRouter = router({
     .input(z.object({ missionId: z.number() }))
     .mutation(async ({ ctx, input }) => {
       return completeMission(ctx.user.id, input.missionId);
+    }),
+});
+
+/**
+ * Games Router - Mini-game coin rewards
+ */
+const gamesRouter = router({
+  earnCoins: protectedProcedure
+    .input(
+      z.object({
+        amount: z.number().int().positive().max(100), // cap per call to prevent abuse
+        source: z.string().min(1).max(255),           // e.g. "Game: AO Trivia"
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      return earnCoins(ctx.user.id, input.amount, input.source);
     }),
 });
 
@@ -139,6 +156,7 @@ export const appRouter = router({
   // Sanctuary Features
   missions: missionRouter,
   coins: coinRouter,
+  games: gamesRouter,
   profiles: profileRouter,
   feed: feedRouter,
   lounges: loungeRouter,

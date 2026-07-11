@@ -495,21 +495,34 @@ export default function Games() {
   const { user } = useAuth();
   const [activeGame, setActiveGame] = useState<string | null>(null);
   const [totalCoinsEarned, setTotalCoinsEarned] = useState(0);
+  const [earnFlash, setEarnFlash] = useState("");
   const coinBalanceQuery = trpc.coins.getBalance.useQuery(undefined, { enabled: !!user });
+  const utils = trpc.useUtils();
 
-  const handleEarnCoins = (amount: number) => {
+  const earnCoinsMutation = trpc.games.earnCoins.useMutation({
+    onSuccess: () => {
+      // Immediately refresh balance and history across the app
+      utils.coins.getBalance.invalidate();
+      utils.coins.getHistory.invalidate();
+    },
+  });
+
+  const handleEarnCoins = (amount: number, source: string = "Game") => {
     setTotalCoinsEarned(c => c + amount);
-    // In a full implementation, this would call a tRPC mutation to award coins
-    // For now, we track locally and show the user what they earned
+    setEarnFlash(`+${amount}`);
+    setTimeout(() => setEarnFlash(""), 2500);
+    if (user) {
+      earnCoinsMutation.mutate({ amount, source });
+    }
   };
 
   const renderGame = () => {
     switch (activeGame) {
-      case "trivia": return <TriviaGame onEarnCoins={handleEarnCoins} />;
-      case "memory": return <MemoryGame onEarnCoins={handleEarnCoins} />;
+      case "trivia": return <TriviaGame onEarnCoins={(n) => handleEarnCoins(n, "Game: AO Trivia")} />;
+      case "memory": return <MemoryGame onEarnCoins={(n) => handleEarnCoins(n, "Game: Neon Memory")} />;
       case "mood": return <MoodMatcher />;
-      case "snack": return <SnackClicker onEarnCoins={handleEarnCoins} />;
-      case "tycoon": return <AnomTycoon onEarnCoins={handleEarnCoins} />;
+      case "snack": return <SnackClicker onEarnCoins={(n) => handleEarnCoins(n, "Game: Snack Vault Rush")} />;
+      case "tycoon": return <AnomTycoon onEarnCoins={(n) => handleEarnCoins(n, "Game: AO Terminal")} />;
       default: return null;
     }
   };
@@ -540,9 +553,16 @@ export default function Games() {
         </div>
 
         <div className="flex items-center gap-3">
-          {totalCoinsEarned > 0 && (
-            <div className="flex items-center gap-1 text-yellow-400 text-sm font-bold animate-pulse">
+          {/* Earn flash — briefly shows +N when coins are awarded */}
+          {earnFlash && (
+            <div className="flex items-center gap-1 text-yellow-300 text-sm font-bold" style={{ animation: "fadeInUp 0.3s ease-out" }}>
               <Trophy className="w-4 h-4" />
+              {earnFlash} coins!
+            </div>
+          )}
+          {totalCoinsEarned > 0 && !earnFlash && (
+            <div className="flex items-center gap-1 text-yellow-400/70 text-xs">
+              <Trophy className="w-3.5 h-3.5" />
               +{totalCoinsEarned} this session
             </div>
           )}

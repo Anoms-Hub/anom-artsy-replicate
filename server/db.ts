@@ -206,6 +206,55 @@ export async function getMyContributions(userId: number): Promise<MissionContrib
 }
 
 /**
+ * Earn Coins from Mini-Games — Atomic coin award
+ * Creates a CoinTransaction and updates the coins balance in one operation.
+ */
+export async function earnCoins(
+  userId: number,
+  amount: number,
+  source: string
+): Promise<{ success: boolean; newBalance: number; error?: string }> {
+  const db = await getDb();
+  if (!db) return { success: false, newBalance: 0, error: "Database not available" };
+  if (amount <= 0) return { success: false, newBalance: 0, error: "Amount must be positive" };
+
+  try {
+    // Get current balance
+    const coinRecord = await db.select().from(coins).where(eq(coins.userId, userId)).limit(1);
+    if (coinRecord.length === 0) {
+      // Create coins record if missing
+      await db.insert(coins).values({ userId });
+    }
+
+    const currentBalance = parseInt((coinRecord[0]?.balance as any)?.toString() || "0");
+    const newBalance = currentBalance + amount;
+
+    // Insert coin transaction
+    await db.insert(coinTransactions).values({
+      userId: userId as any,
+      amount: amount as any,
+      type: "EARN",
+      source,
+      balanceAfter: newBalance as any,
+    });
+
+    // Update balance
+    await db
+      .update(coins)
+      .set({
+        balance: sql`balance + ${amount}`,
+        totalEarned: sql`totalEarned + ${amount}`,
+      })
+      .where(eq(coins.userId, userId));
+
+    return { success: true, newBalance };
+  } catch (error) {
+    console.error("[Database] Failed to earn coins:", error);
+    return { success: false, newBalance: 0, error: "Transaction failed" };
+  }
+}
+
+/**
  * Coin Management
  */
 export async function getCoinBalance(userId: number): Promise<Coin | null> {
