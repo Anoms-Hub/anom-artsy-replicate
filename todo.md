@@ -30,3 +30,9 @@
 - [ ] Wrap earnCoins DB writes in a single atomic transaction (currently two separate writes — could desync on failure)
 - [ ] Add error handling to Games Hub earn flow — show failure toast if mutation fails, don't count coins locally on error
 - [ ] Block coin earning in Games Hub when user is not logged in (show login prompt instead)
+
+## New Tasks (Jul 11 2026 — Session 2)
+- [x] Create reusable skill: mini-game-coin-economy (documents the full process of integrating mini-games with a tRPC coin economy)
+- [x] Games Hub: show login prompt for unauthenticated users instead of silently skipping coin persistence
+- [x] Dashboard: add confetti animation when coin balance increases
+- [x] Recent Earnings feed: add filter tabs (All / Games / Missions)

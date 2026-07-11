@@ -3,6 +3,7 @@ import { Link } from "wouter";
 import { Zap, ArrowLeft, Trophy, Coins } from "lucide-react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
+import { startLogin } from "@/const";
 
 // ===================== TRIVIA GAME =====================
 const triviaQuestions = [
@@ -496,6 +497,8 @@ export default function Games() {
   const [activeGame, setActiveGame] = useState<string | null>(null);
   const [totalCoinsEarned, setTotalCoinsEarned] = useState(0);
   const [earnFlash, setEarnFlash] = useState("");
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+  const [pendingEarnAmount, setPendingEarnAmount] = useState(0);
   const coinBalanceQuery = trpc.coins.getBalance.useQuery(undefined, { enabled: !!user });
   const utils = trpc.useUtils();
 
@@ -513,6 +516,9 @@ export default function Games() {
     setTimeout(() => setEarnFlash(""), 2500);
     if (user) {
       earnCoinsMutation.mutate({ amount, source });
+    } else {
+      setPendingEarnAmount(a => a + amount);
+      setShowLoginPrompt(true);
     }
   };
 
@@ -692,6 +698,51 @@ export default function Games() {
         <span style={{ fontFamily: "'Brush Script MT', cursive", color: "#ff00cc", fontSize: "1rem" }}>Anom</span>{" "}
         © 2026 AO Universe
       </footer>
+
+      {/* Login prompt modal for unauthenticated users who earn coins */}
+      {showLoginPrompt && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center p-4"
+          style={{ background: "rgba(0,0,0,0.80)" }}
+          onClick={(e) => { if (e.target === e.currentTarget) setShowLoginPrompt(false); }}
+        >
+          <div
+            className="w-full max-w-sm rounded-2xl p-8 text-center"
+            style={{
+              background: "linear-gradient(135deg, #0f1117 0%, #1a0a2e 100%)",
+              border: "1px solid rgba(255,0,204,0.5)",
+              boxShadow: "0 0 40px rgba(255,0,204,0.2)",
+            }}
+          >
+            <div className="text-5xl mb-4">🪙</div>
+            <h3
+              className="text-xl font-bold text-pink-300 mb-2"
+              style={{ fontFamily: "'Space Mono', monospace" }}
+            >
+              You Earned {pendingEarnAmount} Coins!
+            </h3>
+            <p className="text-gray-400 text-sm mb-2">
+              Sign in to save your Anom Coins to your account and track your progress on the Dashboard.
+            </p>
+            <p className="text-yellow-400/70 text-xs mb-6">
+              Without signing in, coins earned this session will be lost when you leave.
+            </p>
+            <button
+              onClick={() => startLogin()}
+              className="w-full py-3 rounded-lg font-bold text-white mb-3 transition hover:opacity-90"
+              style={{ background: "linear-gradient(135deg, #ff00cc, #c084fc)" }}
+            >
+              Sign In to Save Coins
+            </button>
+            <button
+              onClick={() => setShowLoginPrompt(false)}
+              className="text-xs text-gray-500 hover:text-gray-300 transition"
+            >
+              Continue playing without saving
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

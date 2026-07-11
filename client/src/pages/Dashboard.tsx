@@ -10,6 +10,7 @@ export default function Dashboard() {
   const { user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState<"missions" | "coins" | "profile" | "lounges">("missions");
   const [showMenu, setShowMenu] = useState(false);
+  const [earningsFilter, setEarningsFilter] = useState<"all" | "games" | "missions">("all");
 
   // Fetch data
   const missionsQuery = trpc.missions.getMissions.useQuery();
@@ -24,18 +25,53 @@ export default function Dashboard() {
   // Track previous balance to animate changes
   const prevBalanceRef = useRef<number>(0);
   const [balanceFlash, setBalanceFlash] = useState(false);
+  const [confettiKey, setConfettiKey] = useState(0);
+  const [showConfetti, setShowConfetti] = useState(false);
 
   const currentBalance = coinBalanceQuery.data
     ? Math.floor(parseFloat(coinBalanceQuery.data.balance?.toString() || "0"))
     : 0;
 
+  // Whether we've received the first real balance load from the server
+  const hasLoadedBalance = useRef(false);
+
   useEffect(() => {
-    if (currentBalance > prevBalanceRef.current && prevBalanceRef.current !== 0) {
+    // Skip until the query has returned data at least once
+    if (!coinBalanceQuery.data) return;
+
+    if (!hasLoadedBalance.current) {
+      // First load — record baseline, no animation
+      hasLoadedBalance.current = true;
+      prevBalanceRef.current = currentBalance;
+      return;
+    }
+
+    // Fire confetti on any balance increase after baseline is set
+    if (currentBalance > prevBalanceRef.current) {
       setBalanceFlash(true);
+      setShowConfetti(true);
+      setConfettiKey(k => k + 1);
       setTimeout(() => setBalanceFlash(false), 1200);
+      setTimeout(() => setShowConfetti(false), 1800);
     }
     prevBalanceRef.current = currentBalance;
-  }, [currentBalance]);
+  }, [currentBalance, coinBalanceQuery.data]);
+
+  // Confetti particle data — 12 particles with different colors and trajectories
+  const confettiParticles = [
+    { color: "#ff00cc", dx: -40, dy: -60, rotate: 45 },
+    { color: "#00eaff", dx: 40, dy: -70, rotate: -30 },
+    { color: "#facc15", dx: -20, dy: -80, rotate: 60 },
+    { color: "#c084fc", dx: 60, dy: -50, rotate: -60 },
+    { color: "#ff00cc", dx: -60, dy: -40, rotate: 90 },
+    { color: "#00eaff", dx: 20, dy: -90, rotate: -45 },
+    { color: "#facc15", dx: -50, dy: -55, rotate: 30 },
+    { color: "#c084fc", dx: 50, dy: -65, rotate: -90 },
+    { color: "#ff6b9d", dx: -30, dy: -75, rotate: 15 },
+    { color: "#7dd3fc", dx: 30, dy: -45, rotate: -15 },
+    { color: "#86efac", dx: -10, dy: -85, rotate: 75 },
+    { color: "#fda4af", dx: 10, dy: -55, rotate: -75 },
+  ];
 
   // Mutations — use cache invalidation for instant UI refresh
   const completeMissionMutation = trpc.missions.completeMission.useMutation({
@@ -78,23 +114,63 @@ export default function Dashboard() {
           </div>
 
           <div className="flex items-center gap-4">
-            {/* Coin Balance Display — flashes when balance increases */}
-            <div
-              className={`hidden md:flex items-center gap-2 bg-black/60 px-4 py-2 rounded border transition-all duration-300 ${
-                balanceFlash
-                  ? "border-yellow-400/80 shadow-[0_0_12px_rgba(250,204,21,0.5)]"
-                  : "border-cyan-500/30"
-              }`}
-            >
-              <Coins className={`w-5 h-5 transition-colors duration-300 ${balanceFlash ? "text-yellow-400" : "text-cyan-400"}`} />
-              <div>
-                <p className="text-xs text-gray-400">Balance</p>
-                <p className={`text-lg font-bold transition-colors duration-300 ${balanceFlash ? "text-yellow-400" : "text-cyan-400"}`}>
-                  {currentBalance}
-                </p>
+            {/* Coin Balance Display — flashes + confetti when balance increases */}
+            <div className="relative hidden md:block">
+              <div
+                className={`flex items-center gap-2 bg-black/60 px-4 py-2 rounded border transition-all duration-300 ${
+                  balanceFlash
+                    ? "border-yellow-400/80 shadow-[0_0_16px_rgba(250,204,21,0.6)]"
+                    : "border-cyan-500/30"
+                }`}
+              >
+                <Coins className={`w-5 h-5 transition-colors duration-300 ${balanceFlash ? "text-yellow-400" : "text-cyan-400"}`} />
+                <div>
+                  <p className="text-xs text-gray-400">Balance</p>
+                  <p
+                    className={`text-lg font-bold transition-all duration-300 ${
+                      balanceFlash ? "text-yellow-400 scale-110" : "text-cyan-400 scale-100"
+                    }`}
+                    style={{ display: "inline-block", transformOrigin: "center" }}
+                  >
+                    {currentBalance}
+                  </p>
+                </div>
+                {balanceFlash && (
+                  <Sparkles className="w-4 h-4 text-yellow-300 animate-spin" />
+                )}
               </div>
-              {balanceFlash && (
-                <Sparkles className="w-4 h-4 text-yellow-300 animate-spin" />
+
+              {/* Confetti burst — 12 particles fly out from the center of the pill */}
+              {showConfetti && (
+                <div
+                  key={confettiKey}
+                  className="pointer-events-none absolute inset-0 flex items-center justify-center"
+                  aria-hidden
+                >
+                  {confettiParticles.map((p, i) => (
+                    <span
+                      key={i}
+                      className="absolute block rounded-sm"
+                      style={{
+                        width: i % 3 === 0 ? "6px" : "4px",
+                        height: i % 3 === 0 ? "4px" : "8px",
+                        background: p.color,
+                        transform: "translate(0,0) rotate(0deg)",
+                        opacity: 1,
+                        animation: `confetti-fly-${i} 1.6s cubic-bezier(0.23, 1, 0.32, 1) forwards`,
+                      }}
+                    />
+                  ))}
+                  <style>{`
+                    ${confettiParticles.map((p, i) => `
+                      @keyframes confetti-fly-${i} {
+                        0%   { transform: translate(0,0) rotate(0deg); opacity: 1; }
+                        60%  { opacity: 1; }
+                        100% { transform: translate(${p.dx}px, ${p.dy}px) rotate(${p.rotate}deg); opacity: 0; }
+                      }
+                    `).join("")}
+                  `}</style>
+                </div>
               )}
             </div>
 
@@ -265,49 +341,91 @@ export default function Dashboard() {
               )}
             </div>
 
-            {/* Recent Earnings Activity Feed */}
+            {/* Recent Earnings Activity Feed with Filter Tabs */}
             <div>
-              <div className="flex items-center gap-2 mb-4">
-                <Sparkles className="w-5 h-5 text-yellow-400" />
-                <h3 className="text-xl font-bold text-yellow-300">Recent Earnings</h3>
+              <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-yellow-400" />
+                  <h3 className="text-xl font-bold text-yellow-300">Recent Earnings</h3>
+                </div>
+                {/* Filter tabs */}
+                <div className="flex items-center gap-1 bg-black/40 border border-white/10 rounded-lg p-1">
+                  {(["all", "games", "missions"] as const).map((f) => (
+                    <button
+                      key={f}
+                      onClick={() => setEarningsFilter(f)}
+                      className={`px-3 py-1 rounded text-xs font-semibold transition-all duration-200 ${
+                        earningsFilter === f
+                          ? f === "games"
+                            ? "bg-purple-500/80 text-white shadow"
+                            : f === "missions"
+                            ? "bg-cyan-500/80 text-black shadow"
+                            : "bg-yellow-500/80 text-black shadow"
+                          : "text-gray-400 hover:text-white"
+                      }`}
+                    >
+                      {f === "all" ? "✨ All" : f === "games" ? "🎮 Games" : "🏆 Missions"}
+                    </button>
+                  ))}
+                </div>
               </div>
               {coinHistoryQuery.isLoading ? (
                 <p className="text-gray-400 text-sm">Loading activity...</p>
-              ) : coinHistoryQuery.data && coinHistoryQuery.data.length > 0 ? (
-                <div className="space-y-2">
-                  {coinHistoryQuery.data.slice(0, 5).map((tx) => {
-                    const isGame = tx.source?.startsWith("Game:");
-                    return (
-                      <div
-                        key={tx.id}
-                        className="bg-black/60 border border-yellow-500/20 p-3 rounded flex justify-between items-center hover:border-yellow-400/40 transition"
-                      >
-                        <div className="flex items-center gap-3">
-                          <span className="text-lg">{isGame ? "🎮" : "🏆"}</span>
-                          <div>
-                            <p className="text-yellow-200 font-semibold text-sm">{tx.source}</p>
-                            <p className="text-xs text-gray-500">
-                              {new Date(tx.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
-                            </p>
+              ) : coinHistoryQuery.data && coinHistoryQuery.data.length > 0 ? (() => {
+                const filtered = coinHistoryQuery.data.filter(tx => {
+                  if (earningsFilter === "games") return tx.source?.startsWith("Game:");
+                  if (earningsFilter === "missions") return !tx.source?.startsWith("Game:");
+                  return true;
+                });
+                return filtered.length > 0 ? (
+                  <div className="space-y-2">
+                    {filtered.slice(0, 5).map((tx) => {
+                      const isGame = tx.source?.startsWith("Game:");
+                      return (
+                        <div
+                          key={tx.id}
+                          className="bg-black/60 border border-yellow-500/20 p-3 rounded flex justify-between items-center hover:border-yellow-400/40 transition"
+                        >
+                          <div className="flex items-center gap-3">
+                            <span className="text-lg">{isGame ? "🎮" : "🏆"}</span>
+                            <div>
+                              <p className="text-yellow-200 font-semibold text-sm">{tx.source}</p>
+                              <p className="text-xs text-gray-500">
+                                {new Date(tx.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-bold text-yellow-400">+{tx.amount}</p>
+                            <p className="text-xs text-gray-500">→ {tx.balanceAfter} total</p>
                           </div>
                         </div>
-                        <div className="text-right">
-                          <p className="font-bold text-yellow-400">+{tx.amount}</p>
-                          <p className="text-xs text-gray-500">→ {tx.balanceAfter} total</p>
-                        </div>
-                      </div>
-                    );
-                  })}
-                  {coinHistoryQuery.data.length > 5 && (
-                    <button
-                      onClick={() => setActiveTab("coins")}
-                      className="text-xs text-cyan-400 hover:text-cyan-300 transition mt-1"
-                    >
-                      View all {coinHistoryQuery.data.length} transactions →
-                    </button>
-                  )}
-                </div>
-              ) : (
+                      );
+                    })}
+                    {filtered.length > 5 && (
+                      <button
+                        onClick={() => setActiveTab("coins")}
+                        className="text-xs text-cyan-400 hover:text-cyan-300 transition mt-1"
+                      >
+                        View all {filtered.length} transactions →
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  <div className="bg-black/40 border border-yellow-500/10 rounded p-4 text-center">
+                    <p className="text-gray-500 text-sm">
+                      No {earningsFilter === "games" ? "game" : "mission"} earnings yet.
+                    </p>
+                    {earningsFilter === "games" && (
+                      <Link href="/games">
+                        <button className="mt-3 text-xs text-purple-400 hover:text-purple-300 transition">
+                          🎮 Go to Games Hub →
+                        </button>
+                      </Link>
+                    )}
+                  </div>
+                );
+              })() : (
                 <div className="bg-black/40 border border-yellow-500/10 rounded p-4 text-center">
                   <p className="text-gray-500 text-sm">No earnings yet.</p>
                   <p className="text-gray-600 text-xs mt-1">Complete missions or play games to earn coins!</p>
