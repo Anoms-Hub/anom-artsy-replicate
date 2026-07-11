@@ -2,6 +2,7 @@ import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Palette, ArrowLeft, ExternalLink, Sparkles, CheckCircle, Mail } from "lucide-react";
+import { CopyrightFooter } from "@/components/CopyrightFooter";
 
 const services = [
   {
@@ -236,9 +237,7 @@ export default function CustomServices() {
         </div>
       </section>
 
-      <footer className="border-t border-pink-500/10 py-8 text-center text-gray-500 text-sm">
-        <p>© 2026 Anom Originals • Identity in Every Pixel</p>
-      </footer>
+      <CopyrightFooter />
     </div>
   );
 }

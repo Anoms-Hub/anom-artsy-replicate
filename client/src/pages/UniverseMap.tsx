@@ -3,6 +3,7 @@ import { Link } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { startLogin } from "@/const";
 import { ArrowLeft, Globe, Map, Star, Zap, Lock, ChevronRight, Users, Coins, BookOpen, Gamepad2 } from "lucide-react";
+import { CopyrightFooter } from "@/components/CopyrightFooter";
 
 // ─── 4-Tier Hierarchy Data ──────────────────────────────────────────────────
 
@@ -551,6 +552,7 @@ export default function UniverseMap() {
           </div>
         </div>
       </div>
+      <CopyrightFooter />
     </div>
   );
 }

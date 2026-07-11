@@ -73,3 +73,13 @@
 - [x] Fix "Complete Mission" buttons — MissionDetailModal with confirm + success flow
 - [x] Wire all new pages into App.tsx routes and Dashboard/Home nav
 - [ ] Update Home page nav to match full site structure (Work, Custom, Merch, Anom's Corner)
+
+## Session Jul 11 2026 — Nav, Settings Polish, Skill
+- [x] Update Home page nav to include Settings and Anom's Corner links (also added Universe, Work, Services)
+- [x] Settings page Save Changes button: loading spinner, green Saved! confirmation state, success toast with description
+- [x] Create reusable skill: sanctuary-feature-workflow (4 patterns: modal confirm flow, settings page, IP protection, route+nav wiring)
+
+## IP Protection (Jul 11 2026)
+- [x] Build Terms of Service page (/terms) — copyright notice, IP ownership, DMCA contact, prohibited uses, coin economy disclaimer
+- [x] Add CopyrightFooter component to Home and Anom's Corner; updated Home footer LEGAL links to /terms and DMCA email
+- [x] Register /terms route in App.tsx

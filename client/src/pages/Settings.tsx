@@ -26,6 +26,7 @@ export default function Settings() {
 
   // Being modal
   const [showBeingModal, setShowBeingModal] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
 
   // Populate form once profile loads
   useEffect(() => {
@@ -69,7 +70,9 @@ export default function Settings() {
   const updateBeingMutation = trpc.profiles.updateBeing.useMutation({
     onSuccess: () => {
       utils.profiles.getMyFullProfile.invalidate();
-      toast.success("Profile saved!");
+      toast.success("Profile saved!", { description: "Your changes are live on your public profile." });
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 2500);
     },
     onError: (err) => {
       toast.error(err.message || "Failed to save profile");
@@ -207,12 +210,18 @@ export default function Settings() {
             <Button
               onClick={handleSave}
               disabled={updateBeingMutation.isPending || usernameStatus === "taken"}
-              className="bg-pink-500 hover:bg-pink-600 text-white flex items-center gap-2"
+              className={`flex items-center gap-2 transition-all duration-300 ${
+                saveSuccess
+                  ? "bg-green-500 hover:bg-green-600 text-white"
+                  : "bg-pink-500 hover:bg-pink-600 text-white"
+              }`}
             >
               {updateBeingMutation.isPending ? (
                 <><Loader2 className="w-4 h-4 animate-spin" /> Saving...</>
+              ) : saveSuccess ? (
+                <><Check className="w-4 h-4" /> Saved!</>
               ) : (
-                <><Save className="w-4 h-4" /> Save Profile</>
+                <><Save className="w-4 h-4" /> Save Changes</>
               )}
             </Button>
           </div>

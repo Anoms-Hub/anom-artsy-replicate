@@ -3,6 +3,7 @@ import { startLogin } from "@/const";
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { CheckCircle } from "lucide-react";
+import { CopyrightFooter } from "@/components/CopyrightFooter";
 
 /**
  * Anom Artsy Home Page
@@ -47,11 +48,17 @@ export default function Home() {
             <a href="/" className="hover:text-[#ff00ff] transition-colors duration-200">
               HOME
             </a>
-            <a href="/sanctuary" className="hover:text-[#ff00ff] transition-colors duration-200">
-              SANCTUARY
+            <a href="/universe" className="hover:text-[#ff00ff] transition-colors duration-200">
+              UNIVERSE
             </a>
-            <a href="/explore" className="hover:text-[#ff00ff] transition-colors duration-200">
-              EXPLORE
+            <a href="/anoms-corner" className="hover:text-[#ff00ff] transition-colors duration-200">
+              ANOM'S CORNER
+            </a>
+            <a href="/work" className="hover:text-[#ff00ff] transition-colors duration-200">
+              WORK
+            </a>
+            <a href="/services" className="hover:text-[#ff00ff] transition-colors duration-200">
+              SERVICES
             </a>
           </nav>
           {isAuthenticated ? (
@@ -62,6 +69,12 @@ export default function Home() {
                 className="neon-button text-sm"
               >
                 DASHBOARD
+              </button>
+              <button
+                onClick={() => navigate("/settings")}
+                className="neon-button text-sm"
+              >
+                SETTINGS
               </button>
               <button
                 onClick={() => logout()}
@@ -291,18 +304,19 @@ export default function Home() {
             <div>
               <h4 className="font-bold text-[#ff1493] mb-4">LEGAL</h4>
               <ul className="space-y-2 text-sm text-[#b0b8d4]">
-                <li><a href="#" className="hover:text-[#ff1493] transition-colors duration-200">Privacy</a></li>
-                <li><a href="#" className="hover:text-[#ff1493] transition-colors duration-200">Terms</a></li>
-                <li><a href="#" className="hover:text-[#ff1493] transition-colors duration-200">Cookies</a></li>
+                <li><a href="/terms" className="hover:text-[#ff1493] transition-colors duration-200">Terms of Service</a></li>
+                <li><a href="/terms" className="hover:text-[#ff1493] transition-colors duration-200">Copyright Notice</a></li>
+                <li><a href="mailto:helloanomoriginals@gmail.com" className="hover:text-[#ff1493] transition-colors duration-200">DMCA Contact</a></li>
               </ul>
             </div>
           </div>
           <div className="border-t border-[#2d3557] pt-8 flex flex-col md:flex-row justify-between items-center text-sm text-[#7a8199]">
-            <p>&copy; 2026 Anom Artsy. All rights reserved.</p>
-            <p>Made with 💜 for creators</p>
+            <p>&copy; 2019–{new Date().getFullYear()} Eliza Wood / Anom Originals. All rights reserved.</p>
+            <p>AO Universe™ · Sanctuary™ · Pixel &amp; Dot™</p>
           </div>
         </div>
       </footer>
+      <CopyrightFooter />
     </div>
   );
 }

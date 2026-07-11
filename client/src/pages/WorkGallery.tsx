@@ -2,6 +2,7 @@ import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ArrowLeft, Palette, Sparkles, ExternalLink } from "lucide-react";
+import { CopyrightFooter } from "@/components/CopyrightFooter";
 
 const lanes = [
   {
@@ -196,9 +197,7 @@ export default function WorkGallery() {
         </div>
       </section>
 
-      <footer className="border-t border-purple-500/10 py-8 text-center text-gray-500 text-sm">
-        <p>© 2026 Anom Originals • Identity in Every Pixel</p>
-      </footer>
+      <CopyrightFooter />
     </div>
   );
 }

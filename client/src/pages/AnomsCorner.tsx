@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Sparkles, Heart, Star, BookOpen, Palette, ArrowLeft, ExternalLink, Mail, Calendar, RefreshCw, Lock, Globe, GraduationCap, Brush } from "lucide-react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
+import { CopyrightFooter } from "@/components/CopyrightFooter";
 
 // Firefox themes
 const FIREFOX_THEMES = [
@@ -625,13 +626,7 @@ export default function AnomsCorner() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t border-pink-500/10 py-8 text-center text-gray-500 text-sm">
-        <p>© 2026 Anom Originals • Identity in Every Pixel</p>
-        <p className="mt-1">
-          <a href="mailto:helloanomoriginals@gmail.com" className="text-pink-400 hover:text-pink-300 transition">helloanomoriginals@gmail.com</a>
-        </p>
-      </footer>
+      <CopyrightFooter />
     </div>
   );
 }
