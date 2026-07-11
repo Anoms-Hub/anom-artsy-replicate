@@ -101,6 +101,8 @@ export const missions = mysqlTable("missions", {
   category: varchar("category", { length: 64 }).notNull(), // perimeter-sweep, resource-logistics, etc
   status: mysqlEnum("status", ["active", "archived"]).default("active").notNull(),
   rewardCoins: int("rewardCoins").default(0),
+  // URL the user is sent to in order to complete this mission (e.g. /settings, /lounge)
+  actionUrl: varchar("actionUrl", { length: 512 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });

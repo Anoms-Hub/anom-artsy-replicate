@@ -83,3 +83,10 @@
 - [x] Build Terms of Service page (/terms) — copyright notice, IP ownership, DMCA contact, prohibited uses, coin economy disclaimer
 - [x] Add CopyrightFooter component to Home and Anom's Corner; updated Home footer LEGAL links to /terms and DMCA email
 - [x] Register /terms route in App.tsx
+
+## Mission Action URL Flow (Jul 11 2026)
+- [x] Add actionUrl column to missions table in schema, migrate DB
+- [x] Seed existing missions with their actionUrl values (Welcome→/lounge, Perimeter→/universe-map, Resources→/universe-map, etc.)
+- [x] Update MissionDetailModal: "Go Complete This Mission" button navigates to actionUrl?completeMission=ID
+- [x] Add useMissionAutoComplete hook — reads ?completeMission=ID from URL, auto-fires mutation, shows success toast, strips param
+- [x] Wire hook into Dashboard, Settings, UniverseMap, FinancialDistrict, AnomsCorner

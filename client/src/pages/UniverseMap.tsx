@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { startLogin } from "@/const";
+import { useMissionAutoComplete } from "@/hooks/useMissionAutoComplete";
 import { ArrowLeft, Globe, Map, Star, Zap, Lock, ChevronRight, Users, Coins, BookOpen, Gamepad2 } from "lucide-react";
 import { CopyrightFooter } from "@/components/CopyrightFooter";
 
@@ -227,6 +228,7 @@ function NodeCard({ node, onClick, isSelected }: { node: Node; onClick: () => vo
 
 // ─── Main Page ───────────────────────────────────────────────────────────────
 export default function UniverseMap() {
+  useMissionAutoComplete();
   const { isAuthenticated } = useAuth();
   const [selectedId, setSelectedId] = useState<string>("ao-universe");
   const [activeTier, setActiveTier] = useState<Tier | "all">("all");

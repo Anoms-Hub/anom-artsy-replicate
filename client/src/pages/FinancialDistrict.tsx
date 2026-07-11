@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { startLogin } from "@/const";
+import { useMissionAutoComplete } from "@/hooks/useMissionAutoComplete";
 import {
   ArrowLeft, Lock, CheckCircle, ChevronRight, BookOpen,
   PiggyBank, CreditCard, TrendingUp, Users, Zap, Star, Coins
@@ -303,6 +304,7 @@ function Quiz({ lesson, onComplete }: { lesson: Lesson; onComplete: () => void }
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function FinancialDistrict() {
+  useMissionAutoComplete();
   const { isAuthenticated } = useAuth();
   const progress = useProgress();
   const [activeModule, setActiveModule] = useState<string>("vault");

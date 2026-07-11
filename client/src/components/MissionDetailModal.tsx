@@ -1,7 +1,8 @@
 import { useState } from "react";
+import { useLocation } from "wouter";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Coins, CheckCircle2, Loader2, X, Zap, Target, Star } from "lucide-react";
+import { Coins, CheckCircle2, X, Target, ExternalLink } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 
@@ -11,6 +12,7 @@ interface Mission {
   description: string;
   category: string;
   rewardCoins: number | null;
+  actionUrl?: string | null;
 }
 
 interface MissionDetailModalProps {
@@ -20,41 +22,51 @@ interface MissionDetailModalProps {
   onComplete: () => void;
 }
 
-const CATEGORY_INFO: Record<string, { label: string; color: string; hint: string }> = {
-  "welcome": { label: "Welcome", color: "text-green-400", hint: "Complete this to get started in the AO Universe." },
-  "perimeter-sweep": { label: "Perimeter Sweep", color: "text-cyan-400", hint: "Help keep the community safe and welcoming." },
-  "resource-logistics": { label: "Resource Logistics", color: "text-yellow-400", hint: "Contribute resources to the community." },
-  "community": { label: "Community", color: "text-pink-400", hint: "Connect with and support other members." },
-  "creativity": { label: "Creativity", color: "text-purple-400", hint: "Express yourself and share your creative work." },
-  "financial": { label: "Financial District", color: "text-emerald-400", hint: "Learn and practice financial literacy skills." },
-  "social-good": { label: "Social Good", color: "text-rose-400", hint: "Make a positive impact in the AO Universe." },
+const CATEGORY_INFO: Record<string, { label: string; color: string }> = {
+  "welcome": { label: "Welcome", color: "text-green-400" },
+  "perimeter-sweep": { label: "Perimeter Sweep", color: "text-cyan-400" },
+  "resource-logistics": { label: "Resource Logistics", color: "text-yellow-400" },
+  "community": { label: "Community", color: "text-pink-400" },
+  "creativity": { label: "Creativity", color: "text-purple-400" },
+  "financial": { label: "Financial District", color: "text-emerald-400" },
+  "social-good": { label: "Social Good", color: "text-rose-400" },
 };
 
 export function MissionDetailModal({ mission, isCompleted, onClose, onComplete }: MissionDetailModalProps) {
-  const [step, setStep] = useState<"detail" | "confirm" | "success">("detail");
+  const [, setLocation] = useLocation();
   const utils = trpc.useUtils();
 
+  // Keep the mutation available for the "already completed" path
+  // (the hook on the destination page handles the normal path)
   const completeMissionMutation = trpc.missions.completeMission.useMutation({
     onSuccess: () => {
       utils.missions.getMissions.invalidate();
       utils.missions.getMyContributions.invalidate();
       utils.coins.getBalance.invalidate();
       utils.coins.getHistory.invalidate();
-      setStep("success");
-      // Notify parent that mission was completed (for balance refresh)
-      // but keep modal open so user sees the success screen
       onComplete();
     },
     onError: (err) => {
       toast.error(err.message || "Could not complete mission. Try again.");
-      setStep("detail");
     },
   });
+  // suppress unused warning — mutation is kept for future use
+  void completeMissionMutation;
 
   if (!mission) return null;
 
-  const catInfo = CATEGORY_INFO[mission.category] ?? { label: mission.category, color: "text-slate-400", hint: "Complete this mission to earn coins." };
+  const catInfo = CATEGORY_INFO[mission.category] ?? { label: mission.category, color: "text-slate-400" };
   const coins = mission.rewardCoins ?? 0;
+
+  // Navigate to the mission's destination page.
+  // The ?completeMission=<id> param is picked up by useMissionAutoComplete
+  // on the destination page, which fires the mutation and shows a success toast.
+  const handleGoToMission = () => {
+    const dest = mission.actionUrl || "/dashboard";
+    const url = `${dest}?completeMission=${mission.id}`;
+    onClose();
+    setLocation(url);
+  };
 
   return (
     <Dialog open={!!mission} onOpenChange={onClose}>
@@ -82,97 +94,42 @@ export function MissionDetailModal({ mission, isCompleted, onClose, onComplete }
           </div>
         </div>
 
-        <div className="px-6 py-5">
-          {step === "detail" && (
-            <div className="space-y-4">
-              <p className="text-sm text-slate-300 leading-relaxed">{mission.description}</p>
+        <div className="px-6 py-5 space-y-4">
+          {/* Mission description */}
+          <p className="text-sm text-slate-300 leading-relaxed">{mission.description}</p>
 
-              {/* Reward */}
-              <div className="flex items-center justify-between bg-cyan-500/10 border border-cyan-500/30 rounded-lg px-4 py-3">
-                <div className="flex items-center gap-2">
-                  <Coins className="w-5 h-5 text-cyan-400" />
-                  <span className="text-sm text-slate-300">Coin Reward</span>
-                </div>
-                <span className="text-xl font-bold text-cyan-400">+{coins}</span>
-              </div>
-
-              {isCompleted ? (
-                <div className="flex items-center gap-2 justify-center py-2 text-green-400">
-                  <CheckCircle2 className="w-5 h-5" />
-                  <span className="font-semibold">Already Completed</span>
-                </div>
-              ) : (
-                <Button
-                  onClick={() => setStep("confirm")}
-                  className="w-full bg-pink-500 hover:bg-pink-600 text-white font-bold"
-                >
-                  <Zap className="w-4 h-4 mr-2" />
-                  I'm Ready to Complete This
-                </Button>
-              )}
+          {/* Coin reward */}
+          <div className="flex items-center justify-between bg-cyan-500/10 border border-cyan-500/30 rounded-lg px-4 py-3">
+            <div className="flex items-center gap-2">
+              <Coins className="w-5 h-5 text-cyan-400" />
+              <span className="text-sm text-slate-300">Coin Reward</span>
             </div>
+            <span className="text-xl font-bold text-cyan-400">+{coins}</span>
+          </div>
+
+          {/* Destination hint */}
+          {!isCompleted && mission.actionUrl && (
+            <p className="text-xs text-slate-500 text-center">
+              You'll be taken to{" "}
+              <span className="text-pink-300 font-medium">{mission.actionUrl}</span>{" "}
+              — completing the action there marks this mission done automatically.
+            </p>
           )}
 
-          {step === "confirm" && (
-            <div className="space-y-4 text-center">
-              <div className="w-16 h-16 rounded-full bg-pink-500/20 flex items-center justify-center mx-auto">
-                <Target className="w-8 h-8 text-pink-400" />
-              </div>
-              <div>
-                <h3 className="text-lg font-bold text-white mb-1">Confirm Completion</h3>
-                <p className="text-sm text-slate-400">
-                  Mark <span className="text-pink-300 font-semibold">"{mission.title}"</span> as complete?
-                  You'll earn <span className="text-cyan-400 font-bold">{coins} coins</span>.
-                </p>
-              </div>
-              <div className="flex gap-3">
-                <Button
-                  variant="outline"
-                  onClick={() => setStep("detail")}
-                  className="flex-1 border-white/20 text-slate-300 hover:bg-white/10"
-                  disabled={completeMissionMutation.isPending}
-                >
-                  Go Back
-                </Button>
-                <Button
-                  onClick={() => completeMissionMutation.mutate({ missionId: mission.id })}
-                  disabled={completeMissionMutation.isPending}
-                  className="flex-1 bg-pink-500 hover:bg-pink-600 text-white font-bold"
-                >
-                  {completeMissionMutation.isPending ? (
-                    <><Loader2 className="w-4 h-4 animate-spin mr-2" /> Completing...</>
-                  ) : (
-                    "Yes, Complete It!"
-                  )}
-                </Button>
-              </div>
+          {/* CTA */}
+          {isCompleted ? (
+            <div className="flex items-center gap-2 justify-center py-2 text-green-400">
+              <CheckCircle2 className="w-5 h-5" />
+              <span className="font-semibold">Already Completed</span>
             </div>
-          )}
-
-          {step === "success" && (
-            <div className="space-y-4 text-center py-2">
-              <div className="relative w-20 h-20 mx-auto">
-                <div className="w-20 h-20 rounded-full bg-green-500/20 flex items-center justify-center">
-                  <CheckCircle2 className="w-10 h-10 text-green-400" />
-                </div>
-                <div className="absolute -top-1 -right-1 w-7 h-7 rounded-full bg-cyan-500/20 flex items-center justify-center">
-                  <Star className="w-4 h-4 text-cyan-400" />
-                </div>
-              </div>
-              <div>
-                <h3 className="text-xl font-bold text-green-400 mb-1">Mission Complete!</h3>
-                <p className="text-sm text-slate-400">
-                  You earned <span className="text-cyan-400 font-bold text-lg">+{coins} coins</span>
-                </p>
-                <p className="text-xs text-slate-500 mt-1">Your balance has been updated.</p>
-              </div>
-              <Button
-                onClick={onClose}
-                className="w-full bg-green-500/20 border border-green-500/40 text-green-300 hover:bg-green-500/30"
-              >
-                Back to Missions
-              </Button>
-            </div>
+          ) : (
+            <Button
+              onClick={handleGoToMission}
+              className="w-full bg-pink-500 hover:bg-pink-600 text-white font-bold"
+            >
+              <ExternalLink className="w-4 h-4 mr-2" />
+              Go Complete This Mission
+            </Button>
           )}
         </div>
       </DialogContent>

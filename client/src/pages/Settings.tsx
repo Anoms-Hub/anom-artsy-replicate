@@ -6,11 +6,13 @@ import { ArrowLeft, User, Sparkles, Shield, Check, X, Loader2, Save } from "luci
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { BeingSelectionModal, BEINGS } from "@/components/BeingSelectionModal";
+import { useMissionAutoComplete } from "@/hooks/useMissionAutoComplete";
 import { toast } from "sonner";
 
 const PRIVILEGE_TIERS = ["Newcomer", "Citizen", "Member", "Contributor", "Guardian"];
 
 export default function Settings() {
+  useMissionAutoComplete();
   const { user } = useAuth();
   const [, navigate] = useLocation();
   const utils = trpc.useUtils();

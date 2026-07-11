@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useMissionAutoComplete } from "@/hooks/useMissionAutoComplete";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -171,6 +172,7 @@ const digitalGoods = [
 ];
 
 export default function AnomsCorner() {
+  useMissionAutoComplete();
   const { user } = useAuth();
   const isAdmin = (user as any)?.role === "admin";
 

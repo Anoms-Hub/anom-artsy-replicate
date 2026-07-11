@@ -1,0 +1,1 @@
+ALTER TABLE `missions` ADD `actionUrl` varchar(512);

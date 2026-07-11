@@ -5,10 +5,12 @@ import { trpc } from "@/lib/trpc";
 import { Zap, Users, Trophy, Coins, Settings, LogOut, Menu, Gamepad2, Sparkles, Globe, Heart, Star, Shield, ExternalLink } from "lucide-react";
 import { BeingSelectionModal, BEINGS } from "@/components/BeingSelectionModal";
 import { MissionDetailModal } from "@/components/MissionDetailModal";
+import { useMissionAutoComplete } from "@/hooks/useMissionAutoComplete";
 import { useState, useEffect, useRef } from "react";
 import { Link } from "wouter";
 
 export default function Dashboard() {
+  useMissionAutoComplete();
   const { user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState<"missions" | "coins" | "profile" | "lounges">("missions");
   const [showMenu, setShowMenu] = useState(false);
