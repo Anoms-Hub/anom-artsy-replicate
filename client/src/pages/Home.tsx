@@ -1,6 +1,7 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { startLogin } from "@/const";
 import { useState } from "react";
+import { useLocation } from "wouter";
 import { CheckCircle } from "lucide-react";
 
 /**
@@ -12,7 +13,14 @@ import { CheckCircle } from "lucide-react";
 
 export default function Home() {
   const { user, isAuthenticated, logout } = useAuth();
+  const [, navigate] = useLocation();
   const [showSuccess, setShowSuccess] = useState(false);
+
+  // Redirect to dashboard if already logged in
+  if (isAuthenticated && user) {
+    navigate("/dashboard");
+    return null;
+  }
 
   const handleOAuthSignup = () => {
     startLogin();
@@ -43,6 +51,12 @@ export default function Home() {
           {isAuthenticated ? (
             <div className="flex items-center gap-4">
               <span className="text-sm text-[#b0b8d4]">{user?.name || user?.email}</span>
+              <button
+                onClick={() => navigate("/dashboard")}
+                className="neon-button text-sm"
+              >
+                DASHBOARD
+              </button>
               <button
                 onClick={() => logout()}
                 className="neon-button text-sm"
