@@ -15,7 +15,7 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<"missions" | "coins" | "profile" | "lounges">("missions");
   const [showMenu, setShowMenu] = useState(false);
   const [earningsFilter, setEarningsFilter] = useState<"all" | "games" | "missions">("all");
-  const [selectedMission, setSelectedMission] = useState<{ id: number; title: string; description: string; category: string; rewardCoins: number | null } | null>(null);
+  const [selectedMission, setSelectedMission] = useState<{ id: number; title: string; description: string; category: string; rewardCoins: number | null; actionUrl?: string | null } | null>(null);
 
   // Fetch data
   const missionsQuery = trpc.missions.getMissions.useQuery();
