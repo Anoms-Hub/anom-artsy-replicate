@@ -197,13 +197,14 @@ export default function Home() {
           </div>
 
           {/* Feature Card 3 */}
-          <div className="neon-card group cursor-pointer hover:scale-105 transition-transform duration-300">
+          <a href="/games" className="neon-card group cursor-pointer hover:scale-105 transition-transform duration-300 block no-underline">
             <div className="text-3xl mb-4 text-[#9d00ff] group-hover:scale-125 transition-transform duration-300">🎮</div>
             <h3 className="text-xl font-bold mb-3 text-[#9d00ff]">Mini-Games</h3>
             <p className="text-[#b0b8d4]">
               Play trivia, memory, mood, mystery, and more. Climb the leaderboard, earn coins, and unlock rewards.
             </p>
-          </div>
+            <p className="text-xs text-[#9d00ff] mt-3 opacity-70">→ Play Now</p>
+          </a>
 
           {/* Feature Card 4 */}
           <div className="neon-card group cursor-pointer hover:scale-105 transition-transform duration-300">

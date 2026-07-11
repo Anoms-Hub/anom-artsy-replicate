@@ -83,7 +83,7 @@ export async function getUserByOpenId(openId: string): Promise<User | null> {
   if (!db) return null;
 
   const result = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
-  return result.length > 0 ? result[0] : null;
+  return result.length > 0 ? JSON.parse(JSON.stringify(result[0])) : null;
 }
 
 export async function getUserById(id: number): Promise<User | null> {
@@ -101,7 +101,9 @@ export async function getMissions(status: "active" | "archived" = "active"): Pro
   const db = await getDb();
   if (!db) return [];
 
-  return db.select().from(missions).where(eq(missions.status, status));
+  const results = await db.select().from(missions).where(eq(missions.status, status));
+  // Use JSON round-trip to create truly plain objects, avoiding superjson [Max Depth] issues with Drizzle ORM result objects
+  return JSON.parse(JSON.stringify(results));
 }
 
 export async function getMissionById(id: number): Promise<Mission | null> {
@@ -109,7 +111,7 @@ export async function getMissionById(id: number): Promise<Mission | null> {
   if (!db) return null;
 
   const result = await db.select().from(missions).where(eq(missions.id, id)).limit(1);
-  return result.length > 0 ? result[0] : null;
+  return result.length > 0 ? JSON.parse(JSON.stringify(result[0])) : null;
 }
 
 /**
@@ -199,7 +201,8 @@ export async function getMyContributions(userId: number): Promise<MissionContrib
   const db = await getDb();
   if (!db) return [];
 
-  return db.select().from(missionContributions).where(eq(missionContributions.userId, userId));
+  const results = await db.select().from(missionContributions).where(eq(missionContributions.userId, userId));
+  return JSON.parse(JSON.stringify(results));
 }
 
 /**
@@ -210,19 +213,20 @@ export async function getCoinBalance(userId: number): Promise<Coin | null> {
   if (!db) return null;
 
   const result = await db.select().from(coins).where(eq(coins.userId, userId)).limit(1);
-  return result.length > 0 ? result[0] : null;
+  return result.length > 0 ? JSON.parse(JSON.stringify(result[0])) : null;
 }
 
-export async function getCoinHistory(userId: number, limit: number = 50) {
+export async function getCoinHistory(userId: number, limit: number = 50): Promise<Array<{id: string; userId: number; amount: number; type: string; source: string; balanceAfter: number; createdAt: Date;}>> {
   const db = await getDb();
   if (!db) return [];
 
-  return db
+  const results = await db
     .select()
     .from(coinTransactions)
     .where(eq(coinTransactions.userId, userId))
     .orderBy(sql`${coinTransactions.createdAt} DESC`)
     .limit(limit);
+  return JSON.parse(JSON.stringify(results));
 }
 
 /**
@@ -233,7 +237,7 @@ export async function getProfile(userId: number) {
   if (!db) return null;
 
   const result = await db.select().from(profiles).where(eq(profiles.userId, userId)).limit(1);
-  return result.length > 0 ? result[0] : null;
+  return result.length > 0 ? JSON.parse(JSON.stringify(result[0])) : null;
 }
 
 export async function updateProfile(userId: number, data: Partial<typeof profiles.$inferInsert>) {
@@ -251,12 +255,13 @@ export async function getFeedPosts(limit: number = 20, offset: number = 0) {
   const db = await getDb();
   if (!db) return [];
 
-  return db
+  const feedResults = await db
     .select()
     .from(feedPosts)
     .orderBy(sql`${feedPosts.createdAt} DESC`)
     .limit(limit)
     .offset(offset);
+  return JSON.parse(JSON.stringify(feedResults));
 }
 
 export async function createFeedPost(userId: number, content: string, mediaUrl?: string) {
@@ -276,11 +281,12 @@ export async function createFeedPost(userId: number, content: string, mediaUrl?:
 /**
  * Lounge Management
  */
-export async function getLounges(limit: number = 20) {
+export async function getLounges(limit: number = 20): Promise<Array<{id: number; ownerId: number; name: string; description: string | null; type: string; isPrivate: boolean | null; createdAt: Date; updatedAt: Date;}>> {
   const db = await getDb();
   if (!db) return [];
 
-  return db.select().from(lounges).limit(limit);
+  const loungeResults = await db.select().from(lounges).limit(limit);
+  return JSON.parse(JSON.stringify(loungeResults));
 }
 
 export async function createLounge(
