@@ -16,6 +16,7 @@ import WorkGallery from "@/pages/WorkGallery";
 import CustomServices from "@/pages/CustomServices";
 import Settings from "@/pages/Settings";
 import TermsOfService from "@/pages/TermsOfService";
+import Lounge from "@/pages/Lounge";
 
 function Router() {
   return (
@@ -32,6 +33,7 @@ function Router() {
       <Route path={"/services"} component={CustomServices} />
       <Route path={"/settings"} component={Settings} />
       <Route path={"/terms"} component={TermsOfService} />
+      <Route path={"/lounge"} component={Lounge} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
