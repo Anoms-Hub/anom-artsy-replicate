@@ -26,10 +26,12 @@ export default function Dashboard() {
   // Full profile for being system
   const fullProfileQuery = trpc.profiles.getMyFullProfile.useQuery();
   const [showBeingModal, setShowBeingModal] = useState(false);
+  // Once the user completes being selection this session, suppress the auto-show
+  const [beingSelectionDone, setBeingSelectionDone] = useState(false);
 
-  // Show being selection modal if user has no being chosen yet
+  // Show being selection modal if user has no being chosen yet (and hasn't just completed it)
   const hasChosenBeing = !!fullProfileQuery.data?.profile?.beingType;
-  const needsBeingSelection = fullProfileQuery.isSuccess && !hasChosenBeing;
+  const needsBeingSelection = fullProfileQuery.isSuccess && !hasChosenBeing && !beingSelectionDone;
 
   // Track previous balance to animate changes
   const prevBalanceRef = useRef<number>(0);
@@ -644,6 +646,7 @@ export default function Dashboard() {
           open={showBeingModal || needsBeingSelection}
           onComplete={() => {
             setShowBeingModal(false);
+            setBeingSelectionDone(true);
             utils.profiles.getMyFullProfile.invalidate();
           }}
         />
