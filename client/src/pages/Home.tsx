@@ -99,7 +99,7 @@ export default function Home() {
               Join the Anom Artsy community — a neon-lit sanctuary where artists first, creativity thrives, and identity is amplified. Create, collaborate, and make world social good impact.
             </p>
             <div className="flex gap-4 pt-4">
-              <button className="neon-button">Explore the Universe</button>
+              <a href="/universe" className="neon-button">Explore the Universe</a>
               <button className="px-6 py-3 border-2 border-[#00ffff] text-[#00ffff] rounded-sm hover:bg-[#00ffff]/10 hover:shadow-[0_0_20px_rgba(0,255,255,0.6)] transition-all duration-200">
                 Support Now
               </button>
@@ -232,6 +232,16 @@ export default function Home() {
               Join community missions. Contribute to collective stability and earn recognition for your impact.
             </p>
           </div>
+
+          {/* Feature Card 7 — Universe Map */}
+          <a href="/universe" className="neon-card group cursor-pointer hover:scale-105 transition-transform duration-300 block no-underline" style={{ borderColor: '#00eaff', boxShadow: '0 0 10px rgba(0,234,255,0.15)' }}>
+            <div className="text-3xl mb-4 text-[#00eaff] group-hover:scale-125 transition-transform duration-300">🌌</div>
+            <h3 className="text-xl font-bold mb-3 text-[#00eaff]">AO Universe Map</h3>
+            <p className="text-[#b0b8d4]">
+              Explore the 4-tier universe: AO-City districts, creator worlds, planets, and neighborhoods. Your being travels everywhere.
+            </p>
+            <p className="text-xs text-[#00eaff] mt-3 opacity-70">→ Explore Now</p>
+          </a>
         </div>
       </section>
 

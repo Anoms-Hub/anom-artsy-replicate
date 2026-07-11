@@ -2,7 +2,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { trpc } from "@/lib/trpc";
-import { Zap, Users, Trophy, Coins, Settings, LogOut, Menu, Gamepad2, Sparkles } from "lucide-react";
+import { Zap, Users, Trophy, Coins, Settings, LogOut, Menu, Gamepad2, Sparkles, Globe } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { Link } from "wouter";
 
@@ -262,6 +262,12 @@ export default function Dashboard() {
             <button className="px-4 py-2 rounded transition text-gray-400 hover:text-purple-300 hover:bg-purple-500/20">
               <Gamepad2 className="w-5 h-5 inline mr-2" />
               Games
+            </button>
+          </Link>
+          <Link href="/universe">
+            <button className="px-4 py-2 rounded transition text-gray-400 hover:text-cyan-300 hover:bg-cyan-500/20">
+              <Globe className="w-5 h-5 inline mr-2" />
+              Universe
             </button>
           </Link>
         </div>

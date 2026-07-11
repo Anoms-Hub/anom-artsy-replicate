@@ -36,3 +36,13 @@
 - [x] Games Hub: show login prompt for unauthenticated users instead of silently skipping coin persistence
 - [x] Dashboard: add confetti animation when coin balance increases
 - [x] Recent Earnings feed: add filter tabs (All / Games / Missions)
+
+## AO Universe 4-Tier World System (Jul 11 2026 — Session 3)
+- [x] Update architecture doc: lock in Universe → Worlds → Planets → Neighborhoods hierarchy
+- [x] Build AO Universe Map page (/universe) — interactive neon district map of AO-City + multiverse world nodes
+- [x] Add Universe Map link to Dashboard nav and Home page
+- [x] Build Financial District page (/financial-district) — Security Bot X-9 guide, 4 lesson modules, quiz system, coin rewards
+- [ ] Add financialLessons and savingsVault tables to drizzle schema (lesson progress is local state for now — backend persistence is next phase)
+- [x] Build Creator Worlds Registry page (/worlds) — world creation form (5-step), world listing, travel mechanic skeleton
+- [ ] Add worlds table to drizzle schema (name, creatorId, socialGoodPillar, description, tier, status) — UI skeleton done, backend next
+- [x] Wire universe map world nodes to creator worlds registry (Creator Worlds node links to /worlds)
