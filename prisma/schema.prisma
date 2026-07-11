@@ -1,0 +1,307 @@
+// Anom Sanctuary - Complete Data Model
+// Mission-driven SFW platform with Anom Coin economy
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+// ============================================
+// Core User & Authentication
+// ============================================
+
+model User {
+  id            Int     @id @default(autoincrement())
+  openId        String  @unique @db.VarChar(64)
+  name          String?
+  email         String? @db.VarChar(320)
+  loginMethod   String? @db.VarChar(64)
+  role          Role    @default(USER)
+  
+  // Relations
+  profile       Profile?
+  coins         Coins? @relation("UserCoins")
+  coinTransactions CoinTransaction[] @relation("UserCoinTransactions")
+  missionContributions MissionContribution[]
+  lounges       Lounge[]
+  loungeMembers LoungeMember[]
+  userEmotes    UserEmote[]
+  feedPosts     FeedPost[]
+  postLikes     PostLike[]
+  ratingsGiven  Rating[] @relation("RaterUser")
+  ratingsReceived Rating[] @relation("RatedUser")
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  lastSignedIn  DateTime @default(now())
+
+  @@map("users")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+// ============================================
+// User Profile & Customization
+// ============================================
+
+model Profile {
+  id                  Int     @id @default(autoincrement())
+  userId              Int     @unique
+  user                User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  photoUrl            String? @db.Text
+  bio                 String? @db.Text
+  theme               String  @default("neon-magenta") @db.VarChar(64)
+  customizationData   Json?   // Stores profile customization (colors, layouts, etc)
+  
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@map("profiles")
+}
+
+// ============================================
+// Anom Coin Economy
+// ============================================
+
+model Coins {
+  id              Int     @id @default(autoincrement())
+  userId          Int     @unique
+  user            User    @relation("UserCoins", fields: [userId], references: [id], onDelete: Cascade)
+  
+  balance         Decimal @default(0) @db.Decimal(10, 2)
+  totalEarned     Decimal @default(0) @db.Decimal(10, 2)
+  totalSpent      Decimal @default(0) @db.Decimal(10, 2)
+  
+  transactions    CoinTransaction[]
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("coins")
+}
+
+model CoinTransaction {
+  id              String  @id @default(cuid())
+  userId          Int
+  user            User    @relation("UserCoinTransactions", fields: [userId], references: [id], onDelete: Cascade)
+  
+  amount          Int     // +50 or -100
+  type            String  @db.VarChar(64) // EARN or SPEND
+  source          String  @db.VarChar(255) // Mission, Lounge, Game, Purchase, etc
+  balanceAfter    Int
+  
+  createdAt       DateTime @default(now())
+
+  @@map("coin_transactions")
+}
+
+// ============================================
+// Missions & Contributions
+// ============================================
+
+model Mission {
+  id                  Int     @id @default(autoincrement())
+  title               String  @db.VarChar(255)
+  description         String  @db.Text
+  category            String  @db.VarChar(64) // perimeter-sweep, resource-logistics, newcomer-integration, etc
+  status              MissionStatus @default(ACTIVE)
+  rewardCoins         Int     @default(0)
+  
+  // Relations
+  contributions       MissionContribution[]
+  
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@map("missions")
+}
+
+enum MissionStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+model MissionContribution {
+  id              Int     @id @default(autoincrement())
+  userId          Int
+  user            User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  missionId       Int
+  mission         Mission @relation(fields: [missionId], references: [id], onDelete: Cascade)
+  
+  status          ContributionStatus @default(PENDING)
+  coinsEarned     Int     @default(0)
+  claimed         Boolean @default(false)
+  
+  completedAt     DateTime?
+  createdAt       DateTime @default(now())
+
+  @@unique([userId, missionId])
+  @@map("mission_contributions")
+}
+
+enum ContributionStatus {
+  PENDING
+  COMPLETED
+  VERIFIED
+}
+
+// ============================================
+// Lounges & Community Spaces
+// ============================================
+
+model Lounge {
+  id              Int     @id @default(autoincrement())
+  ownerId         Int
+  owner           User    @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  
+  name            String  @db.VarChar(255)
+  description     String? @db.Text
+  type            LoungeType @default(COMMUNITY)
+  isPrivate       Boolean @default(true)
+  
+  // Relations
+  members         LoungeMember[]
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("lounges")
+}
+
+enum LoungeType {
+  FAMILY
+  FRIEND
+  FAN
+  COMMUNITY
+}
+
+model LoungeMember {
+  id              Int     @id @default(autoincrement())
+  loungeId        Int
+  lounge          Lounge  @relation(fields: [loungeId], references: [id], onDelete: Cascade)
+  
+  userId          Int
+  user            User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  role            MemberRole @default(MEMBER)
+  joinedAt        DateTime @default(now())
+
+  @@unique([loungeId, userId])
+  @@map("lounge_members")
+}
+
+enum MemberRole {
+  OWNER
+  MODERATOR
+  MEMBER
+}
+
+// ============================================
+// Emotes & Collectibles
+// ============================================
+
+model Emote {
+  id              Int     @id @default(autoincrement())
+  name            String  @db.VarChar(255)
+  description     String? @db.Text
+  imageUrl        String  @db.Text
+  cost            Int     @default(0)
+  rarity          EmoteRarity @default(COMMON)
+  
+  // Relations
+  userEmotes      UserEmote[]
+  
+  createdAt       DateTime @default(now())
+
+  @@map("emotes")
+}
+
+enum EmoteRarity {
+  COMMON
+  UNCOMMON
+  RARE
+  EPIC
+  LEGENDARY
+}
+
+model UserEmote {
+  id              Int     @id @default(autoincrement())
+  userId          Int
+  user            User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  emoteId         Int
+  emote           Emote   @relation(fields: [emoteId], references: [id], onDelete: Cascade)
+  
+  acquiredAt      DateTime @default(now())
+
+  @@unique([userId, emoteId])
+  @@map("user_emotes")
+}
+
+// ============================================
+// Feed & Social Features
+// ============================================
+
+model FeedPost {
+  id              Int     @id @default(autoincrement())
+  userId          Int
+  user            User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  content         String  @db.Text
+  mediaUrl        String? @db.Text
+  likes           Int     @default(0)
+  shares          Int     @default(0)
+  
+  // Relations
+  postLikes       PostLike[]
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("feed_posts")
+}
+
+model PostLike {
+  id              Int     @id @default(autoincrement())
+  postId          Int
+  post            FeedPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  
+  userId          Int
+  user            User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  createdAt       DateTime @default(now())
+
+  @@unique([postId, userId])
+  @@map("post_likes")
+}
+
+// ============================================
+// Rating System
+// ============================================
+
+model Rating {
+  id              Int     @id @default(autoincrement())
+  raterId         Int
+  rater           User    @relation("RaterUser", fields: [raterId], references: [id], onDelete: Cascade)
+  
+  ratedUserId     Int
+  ratedUser       User    @relation("RatedUser", fields: [ratedUserId], references: [id], onDelete: Cascade)
+  
+  score           Int     // 1-5
+  category        String  @db.VarChar(64) // contribution, creativity, helpfulness, etc
+  comment         String? @db.Text
+  
+  createdAt       DateTime @default(now())
+
+  @@unique([raterId, ratedUserId, category])
+  @@map("ratings")
+}

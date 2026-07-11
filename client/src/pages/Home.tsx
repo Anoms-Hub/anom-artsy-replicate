@@ -1,38 +1,21 @@
-import { Button } from "@/components/ui/button";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { startLogin } from "@/const";
 import { useState } from "react";
-import { CheckCircle, Mail, Users, Zap, Heart, Palette, Settings } from "lucide-react";
+import { CheckCircle } from "lucide-react";
 
 /**
  * Anom Artsy Home Page
  * Neon cyberpunk design with high-contrast colors and glowing effects
  * Enhanced with interactive signup form and success states
+ * Integrated with Manus OAuth authentication
  */
 
 export default function Home() {
-  const [signupMethod, setSignupMethod] = useState<string | null>(null);
+  const { user, isAuthenticated, logout } = useAuth();
   const [showSuccess, setShowSuccess] = useState(false);
-  const [email, setEmail] = useState("");
 
-  const handleSignup = (method: string) => {
-    setSignupMethod(method);
-    if (method === "email" && email) {
-      // Simulate form submission
-      setTimeout(() => {
-        setShowSuccess(true);
-        setTimeout(() => {
-          setShowSuccess(false);
-          setSignupMethod(null);
-          setEmail("");
-        }, 3000);
-      }, 500);
-    } else if (method !== "email") {
-      // For OAuth methods, show success immediately
-      setShowSuccess(true);
-      setTimeout(() => {
-        setShowSuccess(false);
-        setSignupMethod(null);
-      }, 2000);
-    }
+  const handleOAuthSignup = () => {
+    startLogin();
   };
 
   return (
@@ -47,17 +30,34 @@ export default function Home() {
             <span className="font-bold text-xl glow-magenta">ANOM // ARTSY</span>
           </div>
           <nav className="hidden md:flex gap-8 items-center text-sm">
-            <a href="#" className="hover:text-[#ff00ff] transition-colors duration-200">
+            <a href="/" className="hover:text-[#ff00ff] transition-colors duration-200">
               HOME
             </a>
-            <a href="#" className="hover:text-[#ff00ff] transition-colors duration-200">
+            <a href="/sanctuary" className="hover:text-[#ff00ff] transition-colors duration-200">
               SANCTUARY
             </a>
-            <a href="#" className="hover:text-[#ff00ff] transition-colors duration-200">
+            <a href="/explore" className="hover:text-[#ff00ff] transition-colors duration-200">
               EXPLORE
             </a>
           </nav>
-          <button className="neon-button text-sm">SIGN IN</button>
+          {isAuthenticated ? (
+            <div className="flex items-center gap-4">
+              <span className="text-sm text-[#b0b8d4]">{user?.name || user?.email}</span>
+              <button
+                onClick={() => logout()}
+                className="neon-button text-sm"
+              >
+                SIGN OUT
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={handleOAuthSignup}
+              className="neon-button text-sm"
+            >
+              SIGN IN
+            </button>
+          )}
         </div>
       </header>
 
@@ -93,59 +93,27 @@ export default function Home() {
                 <h2 className="text-2xl font-bold glow-magenta">Join Anom Artsy</h2>
                 
                 <div className="space-y-4">
+                  {/* Manus OAuth Signup */}
+                  <button
+                    onClick={handleOAuthSignup}
+                    className="w-full bg-[#ff00ff] text-white py-3 rounded-sm font-semibold transition-all duration-200 flex items-center justify-center gap-2 hover:bg-[#ff1493] hover:shadow-[0_0_25px_rgba(255,0,255,0.8)]"
+                  >
+                    <span>✨</span> Sign up with Anom
+                  </button>
+
+                  {/* Facebook Signup */}
+                  <button
+                    className="w-full bg-[#1877F2] text-white py-3 rounded-sm font-semibold transition-all duration-200 flex items-center justify-center gap-2 hover:bg-[#166fe5] hover:shadow-[0_0_15px_rgba(24,119,242,0.6)]"
+                  >
+                    <span>f</span> Sign up with Facebook
+                  </button>
+
                   {/* Google Signup */}
                   <button
-                    onClick={() => handleSignup("google")}
-                    className={`w-full bg-white text-black py-3 rounded-sm font-semibold transition-all duration-200 flex items-center justify-center gap-2 ${
-                      signupMethod === "google"
-                        ? "scale-95 opacity-75"
-                        : "hover:bg-gray-200 hover:shadow-[0_0_15px_rgba(255,255,255,0.3)]"
-                    }`}
+                    className="w-full bg-white text-black py-3 rounded-sm font-semibold transition-all duration-200 flex items-center justify-center gap-2 hover:bg-gray-200 hover:shadow-[0_0_15px_rgba(255,255,255,0.3)]"
                   >
                     <span>🔍</span> Sign up with Google
                   </button>
-
-                  {/* GitHub Signup */}
-                  <button
-                    onClick={() => handleSignup("github")}
-                    className={`w-full bg-black border-2 border-white text-white py-3 rounded-sm font-semibold transition-all duration-200 flex items-center justify-center gap-2 ${
-                      signupMethod === "github"
-                        ? "scale-95 opacity-75"
-                        : "hover:bg-gray-900 hover:shadow-[0_0_15px_rgba(255,255,255,0.2)]"
-                    }`}
-                  >
-                    <span>⚫</span> Sign up with GitHub
-                  </button>
-
-                  {/* Email Signup */}
-                  <div className="space-y-2">
-                    {signupMethod === "email" && (
-                      <input
-                        type="email"
-                        placeholder="Enter your email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className="w-full bg-[#0a0e27] border-2 border-[#ff00ff] text-white px-4 py-2 rounded-sm placeholder-[#7a8199] focus:outline-none focus:shadow-[0_0_20px_rgba(255,0,255,0.6)] transition-all duration-200"
-                        autoFocus
-                      />
-                    )}
-                    <button
-                      onClick={() => {
-                        if (signupMethod === "email" && email) {
-                          handleSignup("email");
-                        } else {
-                          setSignupMethod("email");
-                        }
-                      }}
-                      className={`w-full bg-[#ff00ff] text-white py-3 rounded-sm font-semibold transition-all duration-200 flex items-center justify-center gap-2 ${
-                        signupMethod === "email"
-                          ? "hover:bg-[#ff1493] hover:shadow-[0_0_25px_rgba(255,0,255,0.8)]"
-                          : "hover:bg-[#ff1493] hover:shadow-[0_0_20px_rgba(255,0,255,0.6)]"
-                      }`}
-                    >
-                      <span>✉️</span> {signupMethod === "email" ? "Submit" : "Sign up with Email"}
-                    </button>
-                  </div>
                 </div>
 
                 <p className="text-xs text-[#7a8199] text-center">
@@ -193,9 +161,9 @@ export default function Home() {
           {/* Feature Card 1 */}
           <div className="neon-card group cursor-pointer hover:scale-105 transition-transform duration-300">
             <div className="text-3xl mb-4 text-[#00ffff] group-hover:scale-125 transition-transform duration-300">💰</div>
-            <h3 className="text-xl font-bold mb-3 text-[#00ffff]">Coin Economy</h3>
+            <h3 className="text-xl font-bold mb-3 text-[#00ffff]">Anom Coin Economy</h3>
             <p className="text-[#b0b8d4]">
-              Earn coins through social impact, games, and collaborations. Unlock them on profile, merch, and exclusive content.
+              Earn coins through missions, games, and collaborations. Unlock them on profile, merch, and exclusive content.
             </p>
           </div>
 
@@ -213,7 +181,7 @@ export default function Home() {
             <div className="text-3xl mb-4 text-[#9d00ff] group-hover:scale-125 transition-transform duration-300">🎮</div>
             <h3 className="text-xl font-bold mb-3 text-[#9d00ff]">Mini-Games</h3>
             <p className="text-[#b0b8d4]">
-              Play, trivia, memory, mood, mystery, and more. Climb the leaderboard, earn coins, and unlock rewards.
+              Play trivia, memory, mood, mystery, and more. Climb the leaderboard, earn coins, and unlock rewards.
             </p>
           </div>
 
@@ -237,10 +205,10 @@ export default function Home() {
 
           {/* Feature Card 6 */}
           <div className="neon-card group cursor-pointer hover:scale-105 transition-transform duration-300">
-            <div className="text-3xl mb-4 text-[#ff00ff] group-hover:scale-125 transition-transform duration-300">🔧</div>
-            <h3 className="text-xl font-bold mb-3 text-[#ff00ff]">Creator Merch</h3>
+            <div className="text-3xl mb-4 text-[#ff00ff] group-hover:scale-125 transition-transform duration-300">🎯</div>
+            <h3 className="text-xl font-bold mb-3 text-[#ff00ff]">Missions & Contributions</h3>
             <p className="text-[#b0b8d4]">
-              Request your designs, fulfill all through our trusted partners. Build your world together.
+              Join community missions. Contribute to collective stability and earn recognition for your impact.
             </p>
           </div>
         </div>
@@ -252,7 +220,10 @@ export default function Home() {
           <h2 className="text-4xl font-bold glow-cyan">
             Ready to join the Anom Universe?
           </h2>
-          <button className="neon-button text-lg">
+          <button
+            onClick={handleOAuthSignup}
+            className="neon-button text-lg"
+          >
             Start Your Journey
           </button>
         </div>
@@ -265,8 +236,8 @@ export default function Home() {
             <div>
               <h4 className="font-bold text-[#ff00ff] mb-4">PLATFORM</h4>
               <ul className="space-y-2 text-sm text-[#b0b8d4]">
-                <li><a href="#" className="hover:text-[#ff00ff] transition-colors duration-200">Explore</a></li>
-                <li><a href="#" className="hover:text-[#ff00ff] transition-colors duration-200">Sanctuary</a></li>
+                <li><a href="/" className="hover:text-[#ff00ff] transition-colors duration-200">Explore</a></li>
+                <li><a href="/sanctuary" className="hover:text-[#ff00ff] transition-colors duration-200">Sanctuary</a></li>
                 <li><a href="#" className="hover:text-[#ff00ff] transition-colors duration-200">Features</a></li>
               </ul>
             </div>
@@ -274,15 +245,15 @@ export default function Home() {
               <h4 className="font-bold text-[#00ffff] mb-4">COMMUNITY</h4>
               <ul className="space-y-2 text-sm text-[#b0b8d4]">
                 <li><a href="#" className="hover:text-[#00ffff] transition-colors duration-200">Discord</a></li>
-                <li><a href="#" className="hover:text-[#00ffff] transition-colors duration-200">Twitter</a></li>
-                <li><a href="#" className="hover:text-[#00ffff] transition-colors duration-200">Instagram</a></li>
+                <li><a href="https://twitter.com/anomoriginals" className="hover:text-[#00ffff] transition-colors duration-200">Twitter</a></li>
+                <li><a href="https://instagram.com/anomoriginals" className="hover:text-[#00ffff] transition-colors duration-200">Instagram</a></li>
               </ul>
             </div>
             <div>
               <h4 className="font-bold text-[#9d00ff] mb-4">SUPPORT</h4>
               <ul className="space-y-2 text-sm text-[#b0b8d4]">
                 <li><a href="#" className="hover:text-[#9d00ff] transition-colors duration-200">Help Center</a></li>
-                <li><a href="#" className="hover:text-[#9d00ff] transition-colors duration-200">Contact</a></li>
+                <li><a href="mailto:hello@anomartsy.com" className="hover:text-[#9d00ff] transition-colors duration-200">Contact</a></li>
                 <li><a href="#" className="hover:text-[#9d00ff] transition-colors duration-200">Report</a></li>
               </ul>
             </div>
