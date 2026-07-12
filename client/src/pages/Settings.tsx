@@ -118,11 +118,29 @@ export default function Settings() {
       toast.error("Username is already taken");
       return;
     }
+    // Validate URL fields: only send if empty (clears the value) or a valid URL.
+    // An invalid partial URL would fail server-side Zod validation.
+    const isValidUrl = (val: string) => {
+      if (!val) return false;
+      try { new URL(val); return true; } catch { return false; }
+    };
+    const safePhotoUrl = photoUrl === "" ? "" : isValidUrl(photoUrl) ? photoUrl : undefined;
+    const safeGifUrl = gifUrl === "" ? "" : isValidUrl(gifUrl) ? gifUrl : undefined;
+
+    if (photoUrl && safePhotoUrl === undefined) {
+      toast.error("Photo URL is not a valid URL. Please enter a full URL starting with https://");
+      return;
+    }
+    if (gifUrl && safeGifUrl === undefined) {
+      toast.error("GIF URL is not a valid URL. Please enter a full URL starting with https://");
+      return;
+    }
+
     updateBeingMutation.mutate({
       username: username || undefined,
       bio: bio || undefined,
-      photoUrl: photoUrl || undefined,
-      gifUrl: gifUrl || undefined,
+      photoUrl: safePhotoUrl,
+      gifUrl: safeGifUrl,
     });
   };
 
