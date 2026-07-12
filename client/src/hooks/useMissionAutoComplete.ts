@@ -24,22 +24,33 @@ export function useMissionAutoComplete() {
 
   const completeMutation = trpc.missions.completeMission.useMutation({
     onSuccess: (data) => {
+      const result = data as { success?: boolean; coinsEarned?: number; error?: string };
+
+      // Strip the query param regardless of outcome
+      const clean = window.location.pathname;
+      setLocation(clean, { replace: true });
+
+      if (!result?.success) {
+        // Server returned success:false — show the error
+        toast.error("Mission could not be completed", {
+          description: result?.error || "Please try again from the Missions page.",
+          duration: 6000,
+        });
+        return;
+      }
+
       utils.missions.getMissions.invalidate();
       utils.missions.getMyContributions.invalidate();
       utils.coins.getBalance.invalidate();
       utils.coins.getHistory.invalidate();
 
-      const coins = (data as { coinsEarned?: number })?.coinsEarned;
+      const earned = result?.coinsEarned;
       toast.success("Mission Complete!", {
-        description: coins
-          ? `You earned +${coins} coins. Your balance has been updated.`
+        description: earned
+          ? `You earned +${earned} coins. Your balance has been updated.`
           : "Your mission has been marked as complete.",
         duration: 5000,
       });
-
-      // Strip the query param so a page refresh doesn't re-fire
-      const clean = window.location.pathname;
-      setLocation(clean, { replace: true });
     },
     onError: (err) => {
       // If already completed, silently strip the param — don't show an error

@@ -142,10 +142,15 @@ export async function completeMission(
       return { success: false, contribution: null, coinsEarned: 0, error: "Mission not found" };
     }
 
-    // Get current coin balance
-    const coinRecord = await db.select().from(coins).where(eq(coins.userId, userId)).limit(1);
+    // Get or create coin balance row (new users won't have one yet)
+    let coinRecord = await db.select().from(coins).where(eq(coins.userId, userId)).limit(1);
     if (coinRecord.length === 0) {
-      return { success: false, contribution: null, coinsEarned: 0, error: "User coins not found" };
+      // Create the coins row for this user with 0 balance
+      await db.insert(coins).values({ userId, balance: "0", totalEarned: "0", totalSpent: "0" }).onDuplicateKeyUpdate({ set: { balance: sql`balance` } });
+      coinRecord = await db.select().from(coins).where(eq(coins.userId, userId)).limit(1);
+    }
+    if (coinRecord.length === 0) {
+      return { success: false, contribution: null, coinsEarned: 0, error: "Failed to initialize user coins" };
     }
 
     const currentBalance = parseInt((coinRecord[0].balance as any)?.toString() || "0");
