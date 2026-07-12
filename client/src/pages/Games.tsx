@@ -4,6 +4,7 @@ import { Zap, ArrowLeft, Trophy, Coins } from "lucide-react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { startLogin } from "@/const";
+import { OffGridGame } from "./OffGrid";
 
 // ===================== TRIVIA GAME =====================
 const triviaQuestions = [
@@ -490,6 +491,13 @@ const gameCards = [
     desc: "Economic simulation — plant, scout, sell, upgrade",
     reward: "15–20 coins per milestone",
   },
+  {
+    id: "offgrid",
+    icon: "🛡️",
+    title: "OFF GRID",
+    desc: "Defend the grid. Clear threats. Earn coins.",
+    reward: "10 coins per threat cleared",
+  },
 ];
 
 export default function Games() {
@@ -529,6 +537,7 @@ export default function Games() {
       case "mood": return <MoodMatcher />;
       case "snack": return <SnackClicker onEarnCoins={(n) => handleEarnCoins(n, "Game: Snack Vault Rush")} />;
       case "tycoon": return <AnomTycoon onEarnCoins={(n) => handleEarnCoins(n, "Game: AO Terminal")} />;
+      case "offgrid": return <OffGridGame onEarnCoins={(n) => handleEarnCoins(n, "Game: Off-Grid")} />;
       default: return null;
     }
   };

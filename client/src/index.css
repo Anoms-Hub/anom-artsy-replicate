@@ -117,6 +117,93 @@
   --sidebar-ring: #00ffff;
 }
 
+/* ===== USER THEME CLASSES ===== */
+/* Applied to <html> by useTheme hook based on profile.backgroundId */
+
+/* theme-dark = default AO look (same as :root / .dark) */
+.theme-dark {
+  --background: #0a0e27;
+  --foreground: #ffffff;
+  --card: #1a1f3a;
+  --card-foreground: #ffffff;
+  --muted: #2d3557;
+  --muted-foreground: #b0b8d4;
+  --border: #ff00ff;
+  --input: #1a1f3a;
+  --ring: #00ffff;
+  --primary: #ff00ff;
+  --primary-foreground: #ffffff;
+  --accent: #ff00ff;
+  --accent-foreground: #ffffff;
+  --secondary: #9d00ff;
+  --secondary-foreground: #ffffff;
+  --sidebar: #0a0e27;
+  --sidebar-foreground: #ffffff;
+}
+
+/* theme-light = clean white with soft accents */
+.theme-light {
+  --background: oklch(0.98 0 0);
+  --foreground: oklch(0.15 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.15 0 0);
+  --muted: oklch(0.94 0 0);
+  --muted-foreground: oklch(0.45 0 0);
+  --border: oklch(0.88 0 0);
+  --input: oklch(0.96 0 0);
+  --ring: oklch(0.6 0.2 300);
+  --primary: oklch(0.6 0.25 330);
+  --primary-foreground: oklch(1 0 0);
+  --accent: oklch(0.55 0.2 300);
+  --accent-foreground: oklch(1 0 0);
+  --secondary: oklch(0.92 0 0);
+  --secondary-foreground: oklch(0.15 0 0);
+  --sidebar: oklch(0.96 0 0);
+  --sidebar-foreground: oklch(0.15 0 0);
+}
+
+/* theme-neon-blue = electric cyan command center */
+.theme-neon-blue {
+  --background: #001a2e;
+  --foreground: #e0f4ff;
+  --card: #002a45;
+  --card-foreground: #e0f4ff;
+  --muted: #003a5e;
+  --muted-foreground: #7ec8e3;
+  --border: #00d9ff;
+  --input: #002a45;
+  --ring: #00ffff;
+  --primary: #00d9ff;
+  --primary-foreground: #001a2e;
+  --accent: #00ffff;
+  --accent-foreground: #001a2e;
+  --secondary: #0066aa;
+  --secondary-foreground: #e0f4ff;
+  --sidebar: #001a2e;
+  --sidebar-foreground: #e0f4ff;
+}
+
+/* theme-neon-purple = deep violet with pink glow */
+.theme-neon-purple {
+  --background: #0d0025;
+  --foreground: #f0e6ff;
+  --card: #1a0040;
+  --card-foreground: #f0e6ff;
+  --muted: #2a0060;
+  --muted-foreground: #c084fc;
+  --border: #9d00ff;
+  --input: #1a0040;
+  --ring: #ff00ff;
+  --primary: #9d00ff;
+  --primary-foreground: #ffffff;
+  --accent: #ff00ff;
+  --accent-foreground: #ffffff;
+  --secondary: #6600cc;
+  --secondary-foreground: #f0e6ff;
+  --sidebar: #0d0025;
+  --sidebar-foreground: #f0e6ff;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

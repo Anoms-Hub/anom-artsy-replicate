@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -63,6 +63,35 @@ export default function AdminShop() {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [form, setForm] = useState<FormState>(defaultForm);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadingPreview, setUploadingPreview] = useState(false);
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const previewInputRef = useRef<HTMLInputElement>(null);
+
+  const uploadFile = async (file: File, field: "imageUrl" | "previewUrl") => {
+    const isImage = field === "imageUrl";
+    if (isImage) setUploadingImage(true); else setUploadingPreview(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/upload/shop-asset", {
+        method: "POST",
+        body: formData,
+        credentials: "include",
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: "Upload failed" }));
+        throw new Error(err.error || "Upload failed");
+      }
+      const { url } = await res.json() as { url: string };
+      setForm(f => ({ ...f, [field]: url }));
+      toast.success(isImage ? "Image uploaded!" : "Preview uploaded!");
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "Upload failed");
+    } finally {
+      if (isImage) setUploadingImage(false); else setUploadingPreview(false);
+    }
+  };
 
   const itemsQuery = trpc.shop.getAllItems.useQuery();
   const items = itemsQuery.data ?? [];
@@ -288,28 +317,63 @@ export default function AdminShop() {
                 <p className="text-xs text-slate-600 mt-1">Leave blank for coin-only items</p>
               </div>
 
-              {/* Image URL */}
+              {/* Image Upload */}
               <div>
-                <label className="block text-sm text-slate-400 mb-1.5">Image URL</label>
+                <label className="block text-sm text-slate-400 mb-1.5">Item Image</label>
                 <input
-                  type="url"
-                  value={form.imageUrl}
-                  onChange={e => setForm(f => ({ ...f, imageUrl: e.target.value }))}
-                  placeholder="https://..."
-                  className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-cyan-500/60"
+                  ref={imageInputRef}
+                  type="file"
+                  accept="image/png,image/jpeg,image/gif,image/webp,image/svg+xml"
+                  className="hidden"
+                  onChange={e => { const f = e.target.files?.[0]; if (f) uploadFile(f, "imageUrl"); }}
                 />
+                <div className="flex items-center gap-3">
+                  <Button
+                    type="button"
+                    onClick={() => imageInputRef.current?.click()}
+                    disabled={uploadingImage}
+                    variant="outline"
+                    className="border-cyan-500/40 text-cyan-300 hover:bg-cyan-500/10 text-sm"
+                  >
+                    {uploadingImage ? "Uploading..." : form.imageUrl ? "Replace Image" : "Upload Image"}
+                  </Button>
+                  {form.imageUrl && (
+                    <img src={form.imageUrl} alt="preview" className="w-10 h-10 rounded-lg object-cover border border-white/20" />
+                  )}
+                  {form.imageUrl && (
+                    <button type="button" onClick={() => setForm(f => ({ ...f, imageUrl: "" }))} className="text-slate-500 hover:text-red-400 text-xs">Remove</button>
+                  )}
+                </div>
+                <p className="text-xs text-slate-600 mt-1">PNG, JPEG, GIF, WEBP, SVG — max 20MB</p>
               </div>
 
-              {/* Preview URL */}
+              {/* Preview Upload */}
               <div>
-                <label className="block text-sm text-slate-400 mb-1.5">Preview URL <span className="text-slate-600">(optional — for "try on")</span></label>
+                <label className="block text-sm text-slate-400 mb-1.5">Preview Image <span className="text-slate-600">(optional — for hover preview)</span></label>
                 <input
-                  type="url"
-                  value={form.previewUrl}
-                  onChange={e => setForm(f => ({ ...f, previewUrl: e.target.value }))}
-                  placeholder="https://..."
-                  className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-cyan-500/60"
+                  ref={previewInputRef}
+                  type="file"
+                  accept="image/png,image/jpeg,image/gif,image/webp,image/svg+xml"
+                  className="hidden"
+                  onChange={e => { const f = e.target.files?.[0]; if (f) uploadFile(f, "previewUrl"); }}
                 />
+                <div className="flex items-center gap-3">
+                  <Button
+                    type="button"
+                    onClick={() => previewInputRef.current?.click()}
+                    disabled={uploadingPreview}
+                    variant="outline"
+                    className="border-purple-500/40 text-purple-300 hover:bg-purple-500/10 text-sm"
+                  >
+                    {uploadingPreview ? "Uploading..." : form.previewUrl ? "Replace Preview" : "Upload Preview"}
+                  </Button>
+                  {form.previewUrl && (
+                    <img src={form.previewUrl} alt="preview" className="w-10 h-10 rounded-lg object-cover border border-white/20" />
+                  )}
+                  {form.previewUrl && (
+                    <button type="button" onClick={() => setForm(f => ({ ...f, previewUrl: "" }))} className="text-slate-500 hover:text-red-400 text-xs">Remove</button>
+                  )}
+                </div>
               </div>
 
               {/* Sort Order */}
@@ -323,18 +387,7 @@ export default function AdminShop() {
                 />
               </div>
 
-              {/* Image Preview */}
-              {form.imageUrl && (
-                <div className="md:col-span-2 flex items-center gap-4">
-                  <img
-                    src={form.imageUrl}
-                    alt="Preview"
-                    className="w-20 h-20 rounded-xl object-cover border border-white/20"
-                    onError={e => { (e.target as HTMLImageElement).style.display = "none"; }}
-                  />
-                  <span className="text-xs text-slate-500">Image preview</span>
-                </div>
-              )}
+
             </div>
 
             <div className="flex gap-3 mt-6">

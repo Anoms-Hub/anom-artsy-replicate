@@ -5,8 +5,10 @@ import Dashboard from "@/pages/Dashboard";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import { useTheme } from "./hooks/useTheme";
 import Home from "./pages/Home";
 import Games from "./pages/Games";
+import OffGrid from "./pages/OffGrid";
 import UniverseMap from "./pages/UniverseMap";
 import FinancialDistrict from "./pages/FinancialDistrict";
 import CreatorWorlds from "./pages/CreatorWorlds";
@@ -26,6 +28,7 @@ function Router() {
       <Route path={"/"} component={Home} />
       <Route path={"/dashboard"} component={Dashboard} />
       <Route path={"/games"} component={Games} />
+      <Route path={"/games/off-grid"} component={OffGrid} />
       <Route path={"/universe"} component={UniverseMap} />
       <Route path={"/financial-district"} component={FinancialDistrict} />
       <Route path={"/worlds"} component={CreatorWorlds} />
@@ -50,6 +53,11 @@ function Router() {
 //   to keep consistent foreground/background color across components
 // - If you want to make theme switchable, pass `switchable` ThemeProvider and use `useTheme` hook
 
+function AppInner() {
+  useTheme(); // Apply user's saved theme from profile.backgroundId
+  return <Router />;
+}
+
 function App() {
   return (
     <ErrorBoundary>
@@ -59,7 +67,7 @@ function App() {
       >
         <TooltipProvider>
           <Toaster />
-          <Router />
+          <AppInner />
         </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>

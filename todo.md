@@ -136,3 +136,19 @@
 - [x] Fix UniverseMap Quick Travel — Financial District and Creator Worlds now live (were disabled)
 - [x] Add Lounge and Anom's Corner to Quick Travel panel
 - [x] Update UniverseMap header nav label from "Dashboard" to "Mission Hub"
+
+## Session Jul 12 2026 — Upload, Theme Persistence, Anomaly Chatbot
+- [ ] Add real S3 file upload to Admin Shop Manager (file picker + upload endpoint + stored URL)
+- [ ] Persist theme selection to DB via profiles.backgroundId and hydrate on login
+- [ ] Apply selected theme globally via CSS variables (ThemeProvider / root class switching)
+- [ ] Build Anomaly AI guide chatbot (/anomaly) — interactive chatbot with AO Universe persona
+- [ ] Add Anomaly to Universe Map as a district node
+- [ ] Add Anomaly link to Dashboard hamburger menu and Home nav
+- [ ] Create reusable skill: sanctuary-shop-identity-chatbot (documents shop upload, theme persistence, chatbot build)
+
+## Off-Grid Game Integration (Jul 12 2026)
+- [x] Build OffGrid.tsx React page at /games/off-grid — terminal interface, threat system, command processor, shop upgrades
+- [x] Wire clearance coins to Sanctuary coin economy via tRPC games.earnCoins
+- [x] Add Off-Grid card to Games Hub at /games
+- [x] Register /games/off-grid route in App.tsx
+- [x] Add useMissionAutoComplete hook to OffGrid page

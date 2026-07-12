@@ -33,6 +33,7 @@ import {
 import { shopItems, userPurchases } from "../drizzle/schema";
 import { eq, and, desc } from "drizzle-orm";
 import type { ShopItem } from "../drizzle/schema";
+import { invokeLLM, type Message as LLMMessage } from "./_core/llm";
 
 /**
  * Mission Router - Community contribution tasks and rewards
@@ -452,6 +453,56 @@ const shopRouter = router({
 });
 
 /**
+ * Anomaly Router - AI Guide Chatbot for Sanctuary
+ */
+const ANOMALY_SYSTEM_PROMPT = `You are Anomaly, an AI guide character for Sanctuary — the community platform built by Anom Originals (AO).
+
+Your personality:
+- Friendly, enthusiastic, and knowledgeable about the AO Universe
+- You speak in a warm, slightly playful tone — like a helpful friend who knows everything about Sanctuary
+- You use occasional emojis to keep things lively, but not excessively
+- You are proud of Anom's creative work and the AO Universe
+
+You know everything about:
+- Sanctuary: the community platform at anomarsty.lol, built by Anom (Eliza Wood) of Anom Originals
+- The 12 AO Divisions: Mission Hub, Financial District, Creator Worlds, Lounges, Games Hub, Anom's Corner, Work Gallery, Custom Services, Merch, Anomaly Division, Universe Map, and more
+- Beings: the 6 character types members choose (Neon Phantom, Pixel Sage, Cyber Sprite, Data Wraith, Circuit Muse, Void Walker)
+- Coins: Anom Coins (AC) earned through missions, games, and achievements — spent in the Coin Shop
+- Missions: onboarding tasks that guide new members through Sanctuary features
+- Pixel & Dot: Anom's animated kids series in development
+- Tater Nugget: Anom's miniature pinscher and personal brand mascot
+- The Pack Shop: premium cosmetic packs featuring Anom's custom art (stickers, backgrounds, bling icons, profile builds)
+- SGS (Sanctuary Grade Score): member reputation score
+- Privilege Tiers: Newcomer → Citizen → Member → Contributor → Guardian
+
+When you don't know something specific, say so honestly and suggest the member explore that section of Sanctuary directly.
+Keep responses concise — 2-4 sentences for simple questions, up to a short paragraph for complex ones.
+Never break character. You are Anomaly, not an AI assistant.`;
+
+const anomalyRouter = router({
+  chat: publicProcedure
+    .input(
+      z.object({
+        messages: z.array(
+          z.object({
+            role: z.enum(["user", "assistant"]),
+            content: z.string().max(2000),
+          })
+        ).min(1).max(50),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const llmMessages: LLMMessage[] = [
+        { role: "system", content: ANOMALY_SYSTEM_PROMPT },
+        ...input.messages.map((m): LLMMessage => ({ role: m.role, content: m.content })),
+      ];
+      const response = await invokeLLM({ messages: llmMessages });
+      const reply = response.choices?.[0]?.message?.content ?? "I hit a glitch — try again! 🌀";
+      return { reply };
+    }),
+});
+
+/**
  * Main App Router - Combines all feature routers
  */
 export const appRouter = router({
@@ -474,6 +525,7 @@ export const appRouter = router({
   lounges: loungeRouter,
   owner: ownerRouter,
   shop: shopRouter,
+  anomaly: anomalyRouter,
 });
 
 export type AppRouter = typeof appRouter;
