@@ -23,6 +23,8 @@ import TermsOfService from "@/pages/TermsOfService";
 import Lounge from "@/pages/Lounge";
 import Admin from "@/pages/Admin";
 import CoinDropOverlay from "@/components/CoinDropOverlay";
+import StripeShop from "@/pages/StripeShop";
+import Orders from "@/pages/Orders";
 
 function Router() {
   return (
@@ -44,6 +46,8 @@ function Router() {
       <Route path={"/terms"} component={TermsOfService} />
       <Route path={"/lounge"} component={Lounge} />
       <Route path={"/admin"} component={Admin} />
+      <Route path={"/store"} component={StripeShop} />
+      <Route path={"/orders"} component={Orders} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />

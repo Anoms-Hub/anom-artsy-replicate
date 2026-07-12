@@ -30,7 +30,7 @@ import {
   isUsernameAvailable,
   getDb,
 } from "./db";
-import { shopItems, userPurchases, siteContent, adminDocuments, adminFiles, nodeThumbnails } from "../drizzle/schema";
+import { shopItems, userPurchases, siteContent, adminDocuments, adminFiles, nodeThumbnails, orders, userSubscriptions } from "../drizzle/schema";
 import { eq, and, desc, asc } from "drizzle-orm";
 import type { ShopItem } from "../drizzle/schema";
 import { invokeLLM, type Message as LLMMessage } from "./_core/llm";
@@ -677,6 +677,60 @@ const adminRouter = router({
 });
 
 /**
+ * Stripe Shop Router — orders, subscriptions, product list
+ */
+const stripeShopRouter = router({
+  getProducts: publicProcedure.query(async () => {
+    const { DIGITAL_PRODUCTS, SUBSCRIPTION_PLANS } = await import("./stripe/products");
+    return { products: DIGITAL_PRODUCTS, plans: SUBSCRIPTION_PLANS };
+  }),
+
+  getMyOrders: protectedProcedure.query(async ({ ctx }) => {
+    const db = await getDb();
+    if (!db) return [];
+    const rows = await db
+      .select()
+      .from(orders)
+      .where(eq(orders.userId, ctx.user.id))
+      .orderBy(desc(orders.createdAt));
+    return rows;
+  }),
+
+  getMySubscription: protectedProcedure.query(async ({ ctx }) => {
+    const db = await getDb();
+    if (!db) return null;
+    const rows = await db
+      .select()
+      .from(userSubscriptions)
+      .where(eq(userSubscriptions.userId, ctx.user.id))
+      .limit(1);
+    return rows[0] ?? null;
+  }),
+
+  cancelSubscription: protectedProcedure.mutation(async ({ ctx }) => {
+    const db = await getDb();
+    if (!db) throw new Error("Database not available");
+    const rows = await db
+      .select()
+      .from(userSubscriptions)
+      .where(eq(userSubscriptions.userId, ctx.user.id))
+      .limit(1);
+    const sub = rows[0];
+    if (!sub) throw new Error("No active subscription found");
+
+    const { stripe } = await import("./stripe/client");
+    await stripe.subscriptions.update(sub.stripeSubscriptionId, {
+      cancel_at_period_end: true,
+    });
+    await db
+      .update(userSubscriptions)
+      .set({ cancelAtPeriodEnd: true })
+      .where(eq(userSubscriptions.userId, ctx.user.id));
+    return { success: true };
+  }),
+});
+
+/**
  * Main App Router - Combines all feature routers
  */
 export const appRouter = router({
@@ -700,7 +754,7 @@ export const appRouter = router({
   owner: ownerRouter,
   shop: shopRouter,
   anomaly: anomalyRouter,
-  admin: adminRouter,
+    admin: adminRouter,
+  stripeShop: stripeShopRouter,
 });
-
 export type AppRouter = typeof appRouter;

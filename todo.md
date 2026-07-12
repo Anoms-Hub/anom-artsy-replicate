@@ -255,3 +255,17 @@
 - [x] Mission complete: CoinDropOverlay — full-screen coin rain + "+N Coins Earned!" label, mounted globally in App.tsx, triggered from useMissionAutoComplete
 - [x] Fix: ao-universe node now shows "You Are Here" pill + "Explore AO-City" button instead of dead click
 - [x] sanctuary-feature-workflow skill updated with Patterns 7 (CoinBalancePill + CoinDropOverlay) and 8 (Universe Map node without route) + Common Pitfalls expanded
+
+## Stripe Digital Shop (Jul 12 2026)
+- [x] DB: add stripe_customer_id to users table, add orders table (stripePaymentIntentId, stripeSessionId, productId, amount, currency, status, userId)
+- [x] DB: add user_subscriptions table (stripeSubscriptionId, stripePriceId, status, currentPeriodEnd, userId)
+- [x] Server: server/stripe/products.ts — define all digital products and subscription plans
+- [x] Server: stripe checkout session endpoint (POST /api/stripe/checkout/product and /subscription)
+- [x] Server: stripe webhook handler (POST /api/stripe/webhook) — handle checkout.session.completed, customer.subscription.updated, customer.subscription.deleted
+- [x] Server: tRPC stripeShop router — getProducts, getMyOrders, getMySubscription, cancelSubscription
+- [x] Frontend: /store page (StripeShop.tsx) — product grid (digital art packs, creator packs, portrait commission, Pixel & Dot digital merch, membership tiers)
+- [x] Frontend: checkout button → opens Stripe Checkout in new tab (window.open)
+- [x] Frontend: /orders page — purchase history with date, amount, status
+- [ ] Frontend: membership status badge on profile/dashboard
+- [x] App.tsx: register /store and /orders routes
+- [ ] Nav: add Store link to Dashboard hamburger menu and Home nav

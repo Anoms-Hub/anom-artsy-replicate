@@ -64,6 +64,13 @@
       "when": 1783825925661,
       "tag": "0008_smart_zeigeist",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "5",
+      "when": 1783889125118,
+      "tag": "0009_lively_secret_warriors",
+      "breakpoints": true
     }
   ]
 }

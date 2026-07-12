@@ -26,6 +26,7 @@ export const users = mysqlTable("users", {
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
+  stripeCustomerId: varchar("stripeCustomerId", { length: 256 }),
 });
 
 export type User = typeof users.$inferSelect;
@@ -548,3 +549,40 @@ export const nodeThumbnails = mysqlTable("node_thumbnails", {
 });
 export type NodeThumbnail = typeof nodeThumbnails.$inferSelect;
 export type InsertNodeThumbnail = typeof nodeThumbnails.$inferInsert;
+
+/**
+ * Orders — Stripe one-time purchase records
+ */
+export const orders = mysqlTable("orders", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  stripeSessionId: varchar("stripeSessionId", { length: 256 }).notNull().unique(),
+  stripePaymentIntentId: varchar("stripePaymentIntentId", { length: 256 }),
+  productId: varchar("productId", { length: 128 }).notNull(),
+  productName: varchar("productName", { length: 256 }).notNull(),
+  amount: int("amount").notNull(), // in cents
+  currency: varchar("currency", { length: 8 }).notNull().default("usd"),
+  status: mysqlEnum("status", ["pending", "completed", "refunded", "failed"]).notNull().default("pending"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type Order = typeof orders.$inferSelect;
+export type InsertOrder = typeof orders.$inferInsert;
+
+/**
+ * User Subscriptions — Stripe subscription records
+ */
+export const userSubscriptions = mysqlTable("user_subscriptions", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().unique(),
+  stripeSubscriptionId: varchar("stripeSubscriptionId", { length: 256 }).notNull().unique(),
+  stripePriceId: varchar("stripePriceId", { length: 256 }).notNull(),
+  planId: varchar("planId", { length: 128 }).notNull(), // e.g. "explorer", "creator", "founder"
+  status: varchar("status", { length: 64 }).notNull().default("active"), // active, canceled, past_due
+  currentPeriodEnd: bigint("currentPeriodEnd", { mode: "number" }), // unix timestamp ms
+  cancelAtPeriodEnd: boolean("cancelAtPeriodEnd").notNull().default(false),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type UserSubscription = typeof userSubscriptions.$inferSelect;
+export type InsertUserSubscription = typeof userSubscriptions.$inferInsert;
