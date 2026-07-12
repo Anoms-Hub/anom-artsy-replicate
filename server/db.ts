@@ -419,7 +419,7 @@ export async function updateMemberProfile(
   const db = await getDb();
   if (!db) return null;
 
-  // gifUrl lives inside the customizationData JSON column so we merge it
+  // gifUrl lives inside the customizationData JSON column so we merge it separately
   const { gifUrl, ...directFields } = data;
 
   // Filter out undefined values so Drizzle never receives an empty .set({})
@@ -427,6 +427,8 @@ export async function updateMemberProfile(
     Object.entries(directFields).filter(([, v]) => v !== undefined)
   ) as typeof directFields;
 
+  // Resolve customizationData: merge gifUrl into existing JSON if present
+  let customizationData: Record<string, unknown> | undefined;
   if (gifUrl !== undefined) {
     const existing = await db
       .select({ customizationData: profiles.customizationData })
@@ -434,15 +436,23 @@ export async function updateMemberProfile(
       .where(eq(profiles.userId, userId))
       .limit(1);
     const prev = (existing[0]?.customizationData as Record<string, unknown> | null) ?? {};
-    const merged = { ...prev, gifUrl };
-    await db
-      .update(profiles)
-      .set({ ...cleanFields, customizationData: merged })
-      .where(eq(profiles.userId, userId));
-  } else if (Object.keys(cleanFields).length > 0) {
-    await db.update(profiles).set({ ...cleanFields }).where(eq(profiles.userId, userId));
+    customizationData = { ...prev, gifUrl };
   }
-  // If nothing to update, skip the DB call entirely (no-op is valid)
+
+  const setFields = {
+    ...cleanFields,
+    ...(customizationData !== undefined ? { customizationData } : {}),
+  };
+
+  if (Object.keys(setFields).length > 0) {
+    // Use INSERT ... ON DUPLICATE KEY UPDATE so the profile row is created
+    // automatically if it doesn't exist yet (e.g. first being selection).
+    await db
+      .insert(profiles)
+      .values({ userId, ...setFields })
+      .onDuplicateKeyUpdate({ set: setFields });
+  }
+  // If nothing to set, skip the DB call (no-op is valid)
 
   return getProfileByUserId(userId);
 }
