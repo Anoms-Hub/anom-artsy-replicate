@@ -30,7 +30,7 @@ import {
   isUsernameAvailable,
   getDb,
 } from "./db";
-import { shopItems, userPurchases, siteContent, adminDocuments } from "../drizzle/schema";
+import { shopItems, userPurchases, siteContent, adminDocuments, adminFiles } from "../drizzle/schema";
 import { eq, and, desc, asc } from "drizzle-orm";
 import type { ShopItem } from "../drizzle/schema";
 import { invokeLLM, type Message as LLMMessage } from "./_core/llm";
@@ -557,6 +557,21 @@ const adminRouter = router({
         if (!db) return null;
         const rows = await db.select().from(siteContent).where(eq(siteContent.contentKey, input.key)).limit(1);
         return rows[0] ?? null;
+      }),
+  }),
+  adminFiles: router({
+    list: adminProcedure.query(async () => {
+      const db = await getDb();
+      if (!db) return [];
+      return db.select().from(adminFiles).orderBy(desc(adminFiles.uploadedAt));
+    }),
+    delete: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        if (!db) throw new Error("Database unavailable");
+        await db.delete(adminFiles).where(eq(adminFiles.id, input.id));
+        return { success: true };
       }),
   }),
   docs: router({

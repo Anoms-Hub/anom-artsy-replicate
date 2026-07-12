@@ -4,6 +4,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { startLogin } from "@/const";
 import { useMissionAutoComplete } from "@/hooks/useMissionAutoComplete";
 import { ArrowLeft, Globe, Map, Star, Zap, Lock, ChevronRight, Users, Coins, BookOpen, Gamepad2 } from "lucide-react";
+import EditableText from "@/components/EditableText";
 import { CopyrightFooter } from "@/components/CopyrightFooter";
 
 // ─── 4-Tier Hierarchy Data ──────────────────────────────────────────────────
@@ -400,7 +401,12 @@ export default function UniverseMap() {
                   <p className={`text-xl font-bold bg-gradient-to-r ${selected.color} bg-clip-text text-transparent`}>
                     {selected.name}
                   </p>
-                  <p className="text-xs text-gray-500">{selected.tagline}</p>
+                  <EditableText
+                    contentKey={`universe.node.${selected.id}.tagline`}
+                    fallback={selected.tagline}
+                    tag="p"
+                    className="text-xs text-gray-500"
+                  />
                 </div>
               </div>
 
@@ -417,7 +423,15 @@ export default function UniverseMap() {
                 <span className="text-xs text-gray-500 capitalize">{TIER_META[selected.tier].label}</span>
               </div>
 
-              <p className="text-sm text-gray-300 leading-relaxed mb-4">{selected.description}</p>
+              <div className="text-sm text-gray-300 leading-relaxed mb-4">
+                <EditableText
+                  contentKey={`universe.node.${selected.id}.description`}
+                  fallback={selected.description}
+                  tag="p"
+                  className="text-sm text-gray-300 leading-relaxed"
+                  multiline
+                />
+              </div>
 
               {selected.being && (
                 <div className="flex items-center gap-2 p-3 rounded-lg bg-white/5 border border-white/10 mb-3">

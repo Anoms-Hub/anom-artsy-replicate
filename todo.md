@@ -232,3 +232,11 @@
 - [x] Admin: preview modal for images (lightbox with zoom)
 - [x] Admin: preview modal for text/HTML documents (rendered view with prose styling)
 - [x] Admin: preview modal for PDFs (iframe embed)
+
+## Admin Storage — Skill, EditableText, DB Migration (Jul 12 2026)
+- [x] Create reusable skill: sanctuary-admin-storage (tags + preview modal pattern, DB migration workflow)
+- [x] Wire EditableText into Universe Map world node descriptions (description + tagline editable per node, saved to site_content table)
+- [x] Add admin_files DB table to drizzle/schema.ts and apply migration
+- [x] Update upload endpoint (uploadRoutes.ts) to persist file metadata to admin_files table after S3 upload
+- [x] Replace localStorage file list in Admin.tsx with trpc.admin.adminFiles.list query
+- [x] Replace localStorage delete in Admin.tsx with trpc.admin.adminFiles.delete mutation

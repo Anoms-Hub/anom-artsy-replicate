@@ -48,6 +48,7 @@ import { RichTextEditor } from "@/components/RichTextEditor";
 type Tab = "overview" | "content" | "storage" | "help";
 
 interface StoredFile {
+  id: number;
   url: string;
   key: string;
   filename: string;
@@ -381,13 +382,18 @@ export default function Admin() {
   const [previewDocSlug, setPreviewDocSlug] = useState<string | null>(null);
   // Tag input state per doc card (slug -> current input value)
   const [tagInputs, setTagInputs] = useState<Record<string, string>>({});
-  // Uploaded files state (stored in localStorage for session persistence)
-  const [uploadedFiles, setUploadedFiles] = useState<StoredFile[]>(() => {
-    try {
-      const saved = localStorage.getItem("admin-uploaded-files");
-      return saved ? JSON.parse(saved) as StoredFile[] : [];
-    } catch { return []; }
-  });
+  // Uploaded files — loaded from DB via tRPC (persistent, no localStorage)
+  const filesQuery = trpc.admin.adminFiles.list.useQuery(undefined, { enabled: isAuthenticated && user?.role === "admin" });
+  const uploadedFiles: StoredFile[] = (filesQuery.data ?? []).map(f => ({
+    id: f.id,
+    url: f.url,
+    key: f.fileKey,
+    filename: f.filename,
+    mimetype: f.mimetype,
+    size: f.size,
+    uploadedAt: f.uploadedAt,
+    category: f.category,
+  }));
 
   // Help section open state
   const [openHelpSection, setOpenHelpSection] = useState<string | null>("getting-here");
@@ -431,30 +437,23 @@ export default function Admin() {
     },
   });
 
-  // Persist uploaded files to localStorage
-  const saveUploadedFiles = (files: StoredFile[]) => {
-    setUploadedFiles(files);
-    try { localStorage.setItem("admin-uploaded-files", JSON.stringify(files)); } catch { /* ignore */ }
-  };
+  const deleteFile = trpc.admin.adminFiles.delete.useMutation({
+    onSuccess: () => {
+      utils.admin.adminFiles.list.invalidate();
+      toast.success("File removed.");
+    },
+    onError: (e) => toast.error(e.message),
+  });
 
-  const handleFileUpload = async (file: File, category: string) => {
+  const handleFileUpload = async (file: File, _category: string) => {
     const formData = new FormData();
     formData.append("file", file);
     try {
       const res = await fetch("/api/upload/admin-doc", { method: "POST", body: formData, credentials: "include" });
       const data = await res.json() as { url?: string; key?: string; filename?: string; mimetype?: string; size?: number; error?: string };
       if (data.url && data.key) {
-        const newFile: StoredFile = {
-          url: data.url,
-          key: data.key,
-          filename: data.filename ?? file.name,
-          mimetype: data.mimetype ?? file.type,
-          size: data.size ?? file.size,
-          uploadedAt: Date.now(),
-          category,
-        };
-        const updated = [newFile, ...uploadedFiles];
-        saveUploadedFiles(updated);
+        // Refresh the DB-backed file list
+        utils.admin.adminFiles.list.invalidate();
         toast.success("File uploaded!", { description: "URL copied to clipboard." });
         navigator.clipboard.writeText(data.url).catch(() => {/* ignore */});
       } else {
@@ -1175,9 +1174,7 @@ export default function Admin() {
                               </a>
                               <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" title="Remove from list" onClick={() => {
                                 if (confirm(`Remove "${file.filename}" from your storage list?`)) {
-                                  const updated = uploadedFiles.filter(f => f.key !== file.key);
-                                  saveUploadedFiles(updated);
-                                  toast.success("Removed from storage list.");
+                                  deleteFile.mutate({ id: file.id });
                                 }
                               }}>
                                 <Trash2 className="w-3 h-3" />

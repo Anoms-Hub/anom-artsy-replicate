@@ -10,6 +10,8 @@ import type { Express } from "express";
 import multer from "multer";
 import { storagePut } from "./storage";
 import { sdk } from "./_core/sdk";
+import { getDb } from "./db";
+import { adminFiles } from "../drizzle/schema";
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -134,6 +136,25 @@ export function registerUploadRoutes(app: Express) {
       const safeName = originalname.replace(/[^a-zA-Z0-9._-]/g, "_");
       const key = `admin-docs/${Date.now()}_${safeName}`;
       const { url } = await storagePut(key, buffer, mimetype);
+      // Persist metadata to DB for permanent storage (replaces localStorage)
+      try {
+        const db = await getDb();
+        if (db) {
+          await db.insert(adminFiles).values({
+            url,
+            fileKey: key,
+            filename: originalname,
+            mimetype,
+            size: buffer.length,
+            category: mimetype.startsWith("image/") ? "images" : "files",
+            uploadedAt: Date.now(),
+            uploadedBy: user.openId ?? "admin",
+          });
+        }
+      } catch {
+        // Non-fatal: file is already uploaded to S3, just log
+        console.warn("[upload] Failed to persist admin_files metadata");
+      }
       res.json({ url, key, filename: originalname, mimetype, size: buffer.length });
     } catch (err: unknown) {
       res.status(500).json({ error: err instanceof Error ? err.message : "Upload failed" });

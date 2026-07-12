@@ -50,6 +50,13 @@
       "when": 1783824598166,
       "tag": "0006_boring_ser_duncan",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "5",
+      "when": 1783825552680,
+      "tag": "0007_narrow_katie_power",
+      "breakpoints": true
     }
   ]
 }

@@ -518,3 +518,20 @@ export const adminDocuments = mysqlTable("admin_documents", {
 });
 export type AdminDocument = typeof adminDocuments.$inferSelect;
 export type InsertAdminDocument = typeof adminDocuments.$inferInsert;
+
+/**
+ * Admin Files — uploaded file metadata (images, PDFs, etc.) stored persistently in DB
+ */
+export const adminFiles = mysqlTable("admin_files", {
+  id: int("id").autoincrement().primaryKey(),
+  url: varchar("url", { length: 2048 }).notNull(),
+  fileKey: varchar("file_key", { length: 512 }).notNull(),
+  filename: varchar("filename", { length: 512 }).notNull(),
+  mimetype: varchar("mimetype", { length: 128 }).notNull(),
+  size: int("size").notNull().default(0),
+  category: varchar("category", { length: 64 }).notNull().default("files"),
+  uploadedAt: bigint("uploaded_at", { mode: "number" }).notNull(),
+  uploadedBy: varchar("uploaded_by", { length: 128 }).notNull().default("admin"),
+});
+export type AdminFile = typeof adminFiles.$inferSelect;
+export type InsertAdminFile = typeof adminFiles.$inferInsert;
