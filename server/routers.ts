@@ -128,11 +128,14 @@ const profileRouter = router({
       z.object({
         username: z.string().min(3).max(32).regex(/^[a-zA-Z0-9_-]+$/).optional(),
         bio: z.string().max(280).optional(),
-        photoUrl: z.string().url().optional(),
+        // Allow empty string to clear photo, or a valid URL to set one
+        photoUrl: z.union([z.string().url(), z.literal("")]).optional(),
         beingType: z.enum(["clifford", "tater", "x9", "ao-symbol"]).optional(),
         beingName: z.string().min(1).max(64).optional(),
         backgroundId: z.string().optional(),
         theme: z.string().optional(),
+        // Giphy GIF URL to display on profile (G-rated only, stored in customizationData)
+        gifUrl: z.string().url().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -143,7 +146,21 @@ const profileRouter = router({
           throw new Error("Username is already taken");
         }
       }
-      return updateMemberProfile(ctx.user.id, input);
+      // Server-side bio sanitization: members may only submit plain text.
+      // Strip all HTML tags, JS protocol references, and event handler patterns.
+      const sanitizedInput = {
+        ...input,
+        bio: input.bio !== undefined
+          ? input.bio
+              .replace(/<[^>]*>/g, "")        // strip HTML tags
+              .replace(/javascript:/gi, "")    // strip JS protocol
+              .replace(/on\w+\s*=/gi, "")      // strip event handlers (onclick= etc.)
+              .replace(/[<>]/g, "")            // strip stray angle brackets
+              .trim()
+              .slice(0, 280)
+          : undefined,
+      };
+      return updateMemberProfile(ctx.user.id, sanitizedInput);
     }),
 
   checkUsername: protectedProcedure

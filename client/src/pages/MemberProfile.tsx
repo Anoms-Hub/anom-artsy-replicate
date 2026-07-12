@@ -191,6 +191,22 @@ export default function MemberProfile() {
                 <p className="text-gray-300 text-sm leading-relaxed mb-3">{profile.bio}</p>
               )}
 
+              {/* Profile GIF — stored in customizationData.gifUrl */}
+              {(() => {
+                const customization = (profile.customizationData as Record<string, unknown> | null) ?? {};
+                const savedGifUrl = customization.gifUrl as string | undefined;
+                return savedGifUrl ? (
+                  <div className="mb-3">
+                    <img
+                      src={savedGifUrl}
+                      alt="Profile GIF"
+                      className="rounded-xl max-h-28 object-cover border border-purple-500/30"
+                    />
+                    <p className="text-xs text-slate-600 mt-0.5">via Giphy</p>
+                  </div>
+                ) : null;
+              })()}
+
               {/* Meta row */}
               <div className="flex flex-wrap gap-3 text-xs text-gray-400">
                 <span className="flex items-center gap-1">

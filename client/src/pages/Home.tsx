@@ -258,6 +258,96 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Social Good + Coin Rewards Section */}
+      <section className="relative py-24 overflow-hidden">
+        {/* Background glow blobs */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-0 left-1/4 w-96 h-96 bg-green-500/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-yellow-500/10 rounded-full blur-3xl" />
+        </div>
+        <div className="container mx-auto px-4 relative z-10">
+          {/* Section header */}
+          <div className="text-center mb-16">
+            <p className="text-xs font-bold tracking-[0.3em] text-green-400 uppercase mb-3">Why Sanctuary is Different</p>
+            <h2 className="text-4xl md:text-5xl font-bold mb-4">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-cyan-400">Do Good.</span>
+              {" "}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-400">Get Rewarded.</span>
+            </h2>
+            <p className="text-slate-400 text-lg max-w-xl mx-auto">
+              Sanctuary is the only social platform where being kind, creative, and community-minded fills your wallet.
+            </p>
+          </div>
+
+          {/* Two-column feature deep-dive */}
+          <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto mb-16">
+            {/* Social Good card */}
+            <div className="relative rounded-2xl border border-green-500/30 bg-black/60 p-8 overflow-hidden group hover:border-green-400/60 transition-all duration-300">
+              <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="relative z-10">
+                <div className="w-14 h-14 rounded-xl bg-green-500/20 flex items-center justify-center mb-6 text-3xl">🌱</div>
+                <h3 className="text-2xl font-bold text-green-300 mb-3">Social Good Score</h3>
+                <p className="text-slate-400 mb-6 leading-relaxed">
+                  Every positive action you take — helping a member, completing a mission, visiting a lounge, sharing a kind reaction — raises your Social Good Score. Your score is your reputation in the AO Universe.
+                </p>
+                <ul className="space-y-3">
+                  {[
+                    { icon: "✅", text: "Complete community missions" },
+                    { icon: "💬", text: "Positive reactions and engagement" },
+                    { icon: "🤝", text: "Help and follow other members" },
+                    { icon: "🎮", text: "Play games and contribute to the universe" },
+                  ].map(({ icon, text }) => (
+                    <li key={text} className="flex items-center gap-3 text-sm text-slate-300">
+                      <span className="text-base">{icon}</span>
+                      {text}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+            {/* Coin Rewards card */}
+            <div className="relative rounded-2xl border border-yellow-500/30 bg-black/60 p-8 overflow-hidden group hover:border-yellow-400/60 transition-all duration-300">
+              <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="relative z-10">
+                <div className="w-14 h-14 rounded-xl bg-yellow-500/20 flex items-center justify-center mb-6 text-3xl">🪙</div>
+                <h3 className="text-2xl font-bold text-yellow-300 mb-3">Coin Rewards</h3>
+                <p className="text-slate-400 mb-6 leading-relaxed">
+                  Sanctuary coins are earned, not bought. Every mission completed, game won, and social good action puts coins in your account. Spend them to unlock lounge themes, profile decorations, and exclusive perks.
+                </p>
+                <ul className="space-y-3">
+                  {[
+                    { icon: "🎯", text: "Earn coins from missions and games" },
+                    { icon: "🏠", text: "Unlock lounge themes and layouts" },
+                    { icon: "✨", text: "Unlock profile decorations and badges" },
+                    { icon: "🛍️", text: "Spend in the Pack Shop for extras" },
+                  ].map(({ icon, text }) => (
+                    <li key={text} className="flex items-center gap-3 text-sm text-slate-300">
+                      <span className="text-base">{icon}</span>
+                      {text}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          {/* Stat strip */}
+          <div className="grid grid-cols-3 gap-6 max-w-3xl mx-auto">
+            {[
+              { value: "100%", label: "SFW — always safe", color: "text-green-400" },
+              { value: "0 ads",  label: "No ad-based feed",  color: "text-cyan-400" },
+              { value: "Earn",  label: "Don't just scroll — earn", color: "text-yellow-400" },
+            ].map(({ value, label, color }) => (
+              <div key={label} className="text-center">
+                <p className={`text-3xl font-bold ${color} mb-1`}>{value}</p>
+                <p className="text-xs text-slate-500 uppercase tracking-wide">{label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="bg-gradient-to-b from-[#0a0e27] to-[#1a1f3a] border-t-2 border-[#00ffff] py-20">
         <div className="container mx-auto px-4 text-center space-y-8">

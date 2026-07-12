@@ -6,6 +6,7 @@ import { ArrowLeft, User, Sparkles, Shield, Check, X, Loader2, Save, Palette, Ty
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { BeingSelectionModal, BEINGS } from "@/components/BeingSelectionModal";
+import { ProfileWordEditor } from "@/components/ProfileWordEditor";
 import { useMissionAutoComplete } from "@/hooks/useMissionAutoComplete";
 import { toast } from "sonner";
 
@@ -40,6 +41,7 @@ export default function Settings() {
   const [username, setUsername] = useState("");
   const [bio, setBio] = useState("");
   const [photoUrl, setPhotoUrl] = useState("");
+  const [gifUrl, setGifUrl] = useState("");
   const [usernameStatus, setUsernameStatus] = useState<"idle" | "checking" | "available" | "taken">("idle");
 
   // Being modal
@@ -64,6 +66,8 @@ export default function Settings() {
       setUsername(profile.username || "");
       setBio(profile.bio || "");
       setPhotoUrl(profile.photoUrl || "");
+      const customization = (profile.customizationData as Record<string, unknown> | null) ?? {};
+      setGifUrl((customization.gifUrl as string) || "");
     }
   }, [profile]);
 
@@ -118,6 +122,7 @@ export default function Settings() {
       username: username || undefined,
       bio: bio || undefined,
       photoUrl: photoUrl || undefined,
+      gifUrl: gifUrl || undefined,
     });
   };
 
@@ -205,37 +210,16 @@ export default function Settings() {
               <p className="text-xs text-slate-600 mt-1">3–32 characters, letters/numbers/underscores/hyphens only</p>
             </div>
 
-            {/* Bio */}
-            <div>
-              <label className="block text-sm text-slate-400 mb-1.5">Bio</label>
-              <textarea
-                value={bio}
-                onChange={(e) => setBio(e.target.value)}
-                placeholder="Tell the AO Universe who you are..."
-                maxLength={280}
-                rows={3}
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-cyan-500/60 resize-none"
-              />
-              <p className="text-xs text-slate-600 mt-1 text-right">{bio.length}/280</p>
-            </div>
-
-            {/* Photo URL */}
-            <div>
-              <label className="block text-sm text-slate-400 mb-1.5">Profile Photo URL</label>
-              <input
-                type="url"
-                value={photoUrl}
-                onChange={(e) => setPhotoUrl(e.target.value)}
-                placeholder="https://..."
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-cyan-500/60"
-              />
-              {photoUrl && (
-                <div className="mt-2 flex items-center gap-3">
-                  <img src={photoUrl} alt="Preview" className="w-12 h-12 rounded-full object-cover border border-white/20" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
-                  <span className="text-xs text-slate-500">Preview</span>
-                </div>
-              )}
-            </div>
+            {/* Bio + Photo — no-code word editor */}
+            <ProfileWordEditor
+              value={bio}
+              photoUrl={photoUrl}
+              gifUrl={gifUrl}
+              onChange={setBio}
+              onPhotoChange={setPhotoUrl}
+              onGifChange={setGifUrl}
+              maxLength={280}
+            />
 
             <Button
               onClick={handleSave}

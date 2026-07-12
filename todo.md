@@ -161,3 +161,14 @@
 - [x] Settings page: font selector for site-wide font (Space Mono, VT323, Courier New, Share Tech Mono, Fira Code) — persisted to localStorage
 - [x] Off-Grid: slow threat spawn pacing (15s base interval, not 8s; scale with level)
 - [x] Off-Grid: add visual property panel showing homestead graphics (garden, solar panels, cabin) that upgrade with player level
+
+## SEO, Landing Page & Profile Editor (Jul 12 2026)
+- [x] Create sanctuary-seo-meta skill (documents the SEO meta tag fix process for Sanctuary pages)
+- [x] Landing page: add Social Good + Coin Rewards feature section (visual highlight, icons, short copy)
+- [x] Profile word editor: no-code textarea with photo upload (S3) and Giphy picker, strictly no HTML/code input
+- [x] Wire word editor into Settings.tsx profile card (replace plain textarea for bio)
+- [x] Persist selected Giphy GIF URL to profile customizationData and render on profile pages
+- [x] Request VITE_GIPHY_API_KEY secret for Giphy integration (see webdev_request_secrets below)
+- [x] Server-side bio sanitization: strip HTML/code on updateBeing procedure before saving
+- [x] Render saved customizationData.gifUrl on the public member profile page
+- [x] Request VITE_GIPHY_API_KEY via webdev_request_secrets and verify Giphy search works

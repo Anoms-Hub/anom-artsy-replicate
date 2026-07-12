@@ -410,11 +410,31 @@ export async function updateMemberProfile(
     beingName?: string;
     backgroundId?: string;
     theme?: string;
+    gifUrl?: string;
   }
 ) {
   const db = await getDb();
   if (!db) return null;
-  await db.update(profiles).set({ ...data }).where(eq(profiles.userId, userId));
+
+  // gifUrl lives inside the customizationData JSON column so we merge it
+  const { gifUrl, ...directFields } = data;
+
+  if (gifUrl !== undefined) {
+    const existing = await db
+      .select({ customizationData: profiles.customizationData })
+      .from(profiles)
+      .where(eq(profiles.userId, userId))
+      .limit(1);
+    const prev = (existing[0]?.customizationData as Record<string, unknown> | null) ?? {};
+    const merged = { ...prev, gifUrl };
+    await db
+      .update(profiles)
+      .set({ ...directFields, customizationData: merged })
+      .where(eq(profiles.userId, userId));
+  } else {
+    await db.update(profiles).set({ ...directFields }).where(eq(profiles.userId, userId));
+  }
+
   return getProfileByUserId(userId);
 }
 
