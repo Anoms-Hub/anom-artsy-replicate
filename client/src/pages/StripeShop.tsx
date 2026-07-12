@@ -8,9 +8,10 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
+import { Input } from "@/components/ui/input";
 import {
   ShoppingBag, Sparkles, Crown, Zap, Palette, Star, Package,
-  Check, ArrowLeft, Loader2, ExternalLink
+  Check, ArrowLeft, Loader2, ExternalLink, Search, BookOpen
 } from "lucide-react";
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -39,6 +40,7 @@ export default function StripeShop() {
   const { isAuthenticated } = useAuth();
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [activeCategory, setActiveCategory] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState<string>("");
 
   const { data, isLoading } = trpc.stripeShop.getProducts.useQuery();
   const { data: mySubscription } = trpc.stripeShop.getMySubscription.useQuery(undefined, {
@@ -48,10 +50,16 @@ export default function StripeShop() {
   const products = data?.products ?? [];
   const plans = data?.plans ?? [];
 
-  const filteredProducts =
-    activeCategory === "all"
-      ? products
-      : products.filter((p: any) => p.category === activeCategory);
+  const filteredProducts = products.filter((p: any) => {
+    const matchesCategory = activeCategory === "all" || p.category === activeCategory;
+    const q = searchQuery.toLowerCase().trim();
+    const matchesSearch =
+      !q ||
+      p.name.toLowerCase().includes(q) ||
+      p.description.toLowerCase().includes(q) ||
+      (p.features ?? []).some((f: string) => f.toLowerCase().includes(q));
+    return matchesCategory && matchesSearch;
+  });
 
   const categories = ["all", ...Array.from(new Set(products.map((p: any) => p.category as string)))];
 
@@ -122,12 +130,20 @@ export default function StripeShop() {
           </div>
           <div className="flex items-center gap-2">
             {isAuthenticated && (
-              <Link href="/orders">
-                <Button variant="outline" size="sm" className="gap-2">
-                  <Package className="w-4 h-4" />
-                  My Orders
-                </Button>
-              </Link>
+              <>
+                <Link href="/library">
+                  <Button variant="outline" size="sm" className="gap-2">
+                    <BookOpen className="w-4 h-4" />
+                    My Library
+                  </Button>
+                </Link>
+                <Link href="/orders">
+                  <Button variant="outline" size="sm" className="gap-2">
+                    <Package className="w-4 h-4" />
+                    My Orders
+                  </Button>
+                </Link>
+              </>
             )}
             {!isAuthenticated && (
               <Button size="sm" onClick={() => startLogin()} className="gap-2">
@@ -160,20 +176,31 @@ export default function StripeShop() {
 
           {/* ── Products Tab ─────────────────────────────────────────────── */}
           <TabsContent value="products">
-            {/* Category filter */}
-            <div className="flex flex-wrap gap-2 mb-6">
-              {categories.map((cat: string) => (
-                <Button
-                  key={cat}
-                  variant={activeCategory === cat ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setActiveCategory(cat)}
-                  className="gap-1.5 capitalize"
-                >
-                  {cat !== "all" && CATEGORY_ICONS[cat]}
-                  {cat === "all" ? "All Products" : CATEGORY_LABELS[cat] ?? cat}
-                </Button>
-              ))}
+            {/* Search + Category filter */}
+            <div className="flex flex-col gap-3 mb-6">
+              <div className="relative max-w-sm">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search products…"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9 bg-card/60 border-border/50"
+                />
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {categories.map((cat: string) => (
+                  <Button
+                    key={cat}
+                    variant={activeCategory === cat ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setActiveCategory(cat)}
+                    className="gap-1.5 capitalize"
+                  >
+                    {cat !== "all" && CATEGORY_ICONS[cat]}
+                    {cat === "all" ? "All Products" : CATEGORY_LABELS[cat] ?? cat}
+                  </Button>
+                ))}
+              </div>
             </div>
 
             {isLoading ? (

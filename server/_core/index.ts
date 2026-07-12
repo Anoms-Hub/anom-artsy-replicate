@@ -11,6 +11,7 @@ import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import { stripeCheckoutRouter } from "../stripe/checkout";
 import { stripeWebhookRouter } from "../stripe/webhook";
+import { monthlyCoinBonusHandler } from "../scheduled/monthlyCoinBonus";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -53,6 +54,9 @@ async function startServer() {
     } catch { /* unauthenticated */ }
     next();
   }, stripeCheckoutRouter);
+  // Scheduled handlers
+  app.post("/api/scheduled/monthly-coin-bonus", monthlyCoinBonusHandler);
+
   // tRPC API
   app.use(
     "/api/trpc",

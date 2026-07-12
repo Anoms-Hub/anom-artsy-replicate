@@ -269,3 +269,14 @@
 - [ ] Frontend: membership status badge on profile/dashboard
 - [x] App.tsx: register /store and /orders routes
 - [ ] Nav: add Store link to Dashboard hamburger menu and Home nav
+
+## Store Filters, My Library, Monthly Coins (Jul 12 2026)
+- [x] /store: add category filter pills (All, Art Packs, Pixel & Dot, Commissions, Memberships) and search bar
+- [x] /library: My Library page — shows purchased digital products with download/access links, grouped by category
+- [x] App.tsx: register /library route
+- [ ] Nav: add Library link to Dashboard hamburger menu (authenticated users only)
+- [x] Monthly coin bonus: heartbeat handler at /api/scheduled/monthly-coin-bonus (Explorer=100, Creator=300, Founder=750 coins/month)
+- [ ] Register monthly-coin-bonus cron via manus-heartbeat CLI after deploy
+- [ ] tRPC: stripeShop.getMySubscription returns plan tier for membership badge
+- [ ] Dashboard: membership status badge (Explorer/Creator/Founder) on Profile tab
+- [x] Skill: sanctuary-feature-workflow updated with Patterns 9 (Stripe shop), 10 (monthly bonus heartbeat), 11 (store filters)
