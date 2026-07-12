@@ -20,7 +20,8 @@ export function useTheme() {
   const { isAuthenticated } = useAuth();
   const profileQuery = trpc.profiles.getMyFullProfile.useQuery(undefined, {
     enabled: isAuthenticated,
-    staleTime: 5 * 60 * 1000, // 5 min — don't re-fetch on every render
+    // No staleTime — we want invalidation from Settings to immediately trigger a refetch
+    // so the theme class updates without a page reload.
   });
 
   const backgroundId = profileQuery.data?.profile?.backgroundId ?? "dark";

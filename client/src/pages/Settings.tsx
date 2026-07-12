@@ -298,6 +298,17 @@ export default function Settings() {
                 <button
                   key={theme.id}
                   onClick={() => {
+                    // Apply theme class immediately (optimistic) so the user sees it right away
+                    const THEME_CLASSES = ["theme-dark", "theme-light", "theme-neon-blue", "theme-neon-purple"];
+                    const THEME_MAP: Record<string, string> = {
+                      dark: "theme-dark",
+                      light: "theme-light",
+                      "neon-blue": "theme-neon-blue",
+                      "neon-purple": "theme-neon-purple",
+                    };
+                    const html = document.documentElement;
+                    THEME_CLASSES.forEach(cls => html.classList.remove(cls));
+                    html.classList.add(THEME_MAP[theme.id] ?? "theme-dark");
                     updateBeingMutation.mutate({ backgroundId: theme.id });
                     toast.success(`Theme changed to ${theme.label}`);
                   }}
