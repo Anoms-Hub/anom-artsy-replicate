@@ -128,15 +128,15 @@ const profileRouter = router({
       z.object({
         username: z.string().min(3).max(32).regex(/^[a-zA-Z0-9_-]+$/).optional(),
         bio: z.string().max(280).optional(),
-        // Allow empty string to clear photo, a valid absolute URL, or a /manus-storage/ relative path
-        photoUrl: z.union([z.string().url(), z.literal(""), z.string().startsWith("/manus-storage/")]).optional(),
+        // Accept any string: absolute URL, /manus-storage/ relative path, or empty string to clear.
+        // Client-side validation handles format checks before sending.
+        photoUrl: z.string().optional(),
         beingType: z.enum(["clifford", "tater", "x9", "ao-symbol"]).optional(),
         beingName: z.string().min(1).max(64).optional(),
         backgroundId: z.string().optional(),
         theme: z.string().optional(),
-        // Giphy GIF URL to display on profile (G-rated only, stored in customizationData)
-        // Also accept /manus-storage/ paths from S3 uploads
-        gifUrl: z.union([z.string().url(), z.string().startsWith("/manus-storage/")]).optional(),
+        // Giphy GIF URL or /manus-storage/ path. Client validates format before sending.
+        gifUrl: z.string().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
