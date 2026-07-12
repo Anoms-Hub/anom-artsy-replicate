@@ -119,9 +119,10 @@ export default function Settings() {
       return;
     }
     // Validate URL fields: only send if empty (clears the value) or a valid URL.
-    // An invalid partial URL would fail server-side Zod validation.
+    // Also accept /manus-storage/... relative paths returned by the S3 upload endpoint.
     const isValidUrl = (val: string) => {
       if (!val) return false;
+      if (val.startsWith("/manus-storage/")) return true;
       try { new URL(val); return true; } catch { return false; }
     };
     const safePhotoUrl = photoUrl === "" ? "" : isValidUrl(photoUrl) ? photoUrl : undefined;
