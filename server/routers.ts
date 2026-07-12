@@ -30,7 +30,7 @@ import {
   isUsernameAvailable,
   getDb,
 } from "./db";
-import { shopItems, userPurchases, siteContent, adminDocuments, adminFiles, nodeThumbnails, orders, userSubscriptions } from "../drizzle/schema";
+import { shopItems, userPurchases, siteContent, adminDocuments, adminFiles, nodeThumbnails, orders, userSubscriptions, coins, coinTransactions, users } from "../drizzle/schema";
 import { eq, and, desc, asc } from "drizzle-orm";
 import type { ShopItem } from "../drizzle/schema";
 import { invokeLLM, type Message as LLMMessage } from "./_core/llm";
@@ -728,6 +728,126 @@ const stripeShopRouter = router({
       .where(eq(userSubscriptions.userId, ctx.user.id));
     return { success: true };
   }),
+
+  /**
+   * Apply coin discount — creates a Stripe coupon, deducts coins, returns discounted checkout URL.
+   * Rules: 100 coins = 10% off, max 500 coins = 50% off, only on coinDiscountEligible products.
+   */
+  applyCoinDiscount: protectedProcedure
+    .input(
+      z.object({
+        productId: z.string(),
+        coinsToSpend: z.number().int().min(100).max(500),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (input.coinsToSpend % 100 !== 0) {
+        throw new Error("Coins must be spent in multiples of 100");
+      }
+      const { DIGITAL_PRODUCTS } = await import("./stripe/products");
+      const product = DIGITAL_PRODUCTS.find(
+        (p) => p.id === input.productId && p.coinDiscountEligible === true
+      );
+      if (!product) {
+        throw new Error("Product not eligible for coin discount");
+      }
+      const db = await getDb();
+      if (!db) throw new Error("Database unavailable");
+
+      // Check coin balance
+      const coinRows = await db
+        .select()
+        .from(coins)
+        .where(eq(coins.userId, ctx.user.id))
+        .limit(1);
+      const coinRow = coinRows[0];
+      const balance = Math.floor(Number(coinRow?.balance ?? 0));
+      if (balance < input.coinsToSpend) {
+        throw new Error(`Insufficient coins. You have ${balance} coins but need ${input.coinsToSpend}.`);
+      }
+
+      // Calculate discount
+      const discountPercent = (input.coinsToSpend / 100) * 10;
+      const discountedPrice = Math.round(product.price * (1 - discountPercent / 100));
+
+      const { stripe } = await import("./stripe/client");
+
+      // Create a single-use Stripe coupon
+      const coupon = await stripe.coupons.create({
+        percent_off: discountPercent,
+        duration: "once",
+        max_redemptions: 1,
+        name: `${input.coinsToSpend} Anom Coins — ${discountPercent}% off`,
+      });
+
+      // Get or create Stripe customer
+      const userRows = await db.select().from(users).where(eq(users.id, ctx.user.id)).limit(1);
+      const userRow = userRows[0];
+      let customerId = userRow?.stripeCustomerId;
+      if (!customerId) {
+        const customer = await stripe.customers.create({
+          email: ctx.user.email ?? "",
+          name: ctx.user.name ?? "",
+          metadata: { userId: ctx.user.id.toString() },
+        });
+        customerId = customer.id;
+        await db.update(users).set({ stripeCustomerId: customerId }).where(eq(users.id, ctx.user.id));
+      }
+
+      const origin = (ctx.req.headers.origin as string) ?? "https://anomarsty.lol";
+
+      // Create discounted checkout session
+      const session = await stripe.checkout.sessions.create({
+        customer: customerId,
+        payment_method_types: ["card"],
+        line_items: [
+          {
+            price_data: {
+              currency: "usd",
+              product_data: {
+                name: product.name,
+                description: `${product.description} (${discountPercent}% coin discount applied)`,
+                metadata: { productId: product.id },
+              },
+              unit_amount: discountedPrice,
+            },
+            quantity: 1,
+          },
+        ],
+        mode: "payment",
+        discounts: [{ coupon: coupon.id }],
+        client_reference_id: ctx.user.id.toString(),
+        metadata: {
+          user_id: ctx.user.id.toString(),
+          product_id: product.id,
+          product_name: product.name,
+          coins_spent: input.coinsToSpend.toString(),
+          discount_percent: discountPercent.toString(),
+          customer_email: ctx.user.email ?? "",
+          customer_name: ctx.user.name ?? "",
+        },
+        success_url: `${origin}/orders?session_id={CHECKOUT_SESSION_ID}&success=1&coins_used=${input.coinsToSpend}`,
+        cancel_url: `${origin}/store`,
+      });
+
+      // Deduct coins from balance
+      const newBalance = balance - input.coinsToSpend;
+      await db
+        .update(coins)
+        .set({ balance: newBalance.toString() })
+        .where(eq(coins.userId, ctx.user.id));
+
+      // Record coin transaction
+      await db.insert(coinTransactions).values({
+        userId: ctx.user.id,
+        amount: -input.coinsToSpend,
+        type: "SPEND",
+        source: `Coin discount on ${product.name}`,
+        balanceAfter: newBalance,
+      });
+
+      return { checkoutUrl: session.url };
+    }),
 });
 
 /**

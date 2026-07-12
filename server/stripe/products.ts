@@ -12,6 +12,7 @@ export interface DigitalProduct {
   emoji: string;
   features: string[];
   stripePriceId?: string; // set after creating in Stripe Dashboard
+  coinDiscountEligible?: boolean; // art-packs, creator-packs, merch, bundles only (not commissions/subscriptions)
 }
 
 export interface SubscriptionPlan {
@@ -35,6 +36,7 @@ export const DIGITAL_PRODUCTS: DigitalProduct[] = [
     price: 999,
     category: "art-pack",
     emoji: "🌆",
+    coinDiscountEligible: true,
     features: [
       "20+ high-res PNG assets",
       "Neon & cyberpunk aesthetic",
@@ -49,6 +51,7 @@ export const DIGITAL_PRODUCTS: DigitalProduct[] = [
     price: 799,
     category: "art-pack",
     emoji: "✨",
+    coinDiscountEligible: true,
     features: [
       "4 official AO Universe characters",
       "Sticker-ready transparent PNGs",
@@ -63,6 +66,7 @@ export const DIGITAL_PRODUCTS: DigitalProduct[] = [
     price: 1299,
     category: "art-pack",
     emoji: "🎬",
+    coinDiscountEligible: true,
     features: [
       "30+ series art assets",
       "Pixel & Dot characters",
@@ -79,6 +83,7 @@ export const DIGITAL_PRODUCTS: DigitalProduct[] = [
     price: 1999,
     category: "creator-pack",
     emoji: "🎨",
+    coinDiscountEligible: true,
     features: [
       "Logo template kit (editable SVG)",
       "5 curated color palettes",
@@ -94,6 +99,7 @@ export const DIGITAL_PRODUCTS: DigitalProduct[] = [
     price: 1499,
     category: "creator-pack",
     emoji: "💫",
+    coinDiscountEligible: true,
     features: [
       "Community post templates",
       "Social good badge set",
@@ -110,6 +116,7 @@ export const DIGITAL_PRODUCTS: DigitalProduct[] = [
     price: 4999,
     category: "commission",
     emoji: "🖼️",
+    // coinDiscountEligible: false — commissions are not eligible
     features: [
       "1 custom character/portrait",
       "Neon/cyberpunk art style",
@@ -126,6 +133,7 @@ export const DIGITAL_PRODUCTS: DigitalProduct[] = [
     price: 2999,
     category: "commission",
     emoji: "🌟",
+    // coinDiscountEligible: false — commissions are not eligible
     features: [
       "Your chosen AO Being",
       "Custom color/accessory options",
@@ -143,6 +151,7 @@ export const DIGITAL_PRODUCTS: DigitalProduct[] = [
     price: 499,
     category: "merch",
     emoji: "🐾",
+    coinDiscountEligible: true,
     features: [
       "24 digital stickers",
       "Animated GIF + static PNG",
@@ -157,6 +166,7 @@ export const DIGITAL_PRODUCTS: DigitalProduct[] = [
     price: 699,
     category: "merch",
     emoji: "🐕",
+    coinDiscountEligible: true,
     features: [
       "Tater Nugget sticker set (12 designs)",
       "Phone & desktop wallpapers",
@@ -173,6 +183,7 @@ export const DIGITAL_PRODUCTS: DigitalProduct[] = [
     price: 3999,
     category: "bundle",
     emoji: "🌌",
+    coinDiscountEligible: true,
     features: [
       "All 3 art packs included",
       "Brand Starter Creator Pack",

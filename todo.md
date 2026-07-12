@@ -280,3 +280,11 @@
 - [ ] tRPC: stripeShop.getMySubscription returns plan tier for membership badge
 - [ ] Dashboard: membership status badge (Explorer/Creator/Founder) on Profile tab
 - [x] Skill: sanctuary-feature-workflow updated with Patterns 9 (Stripe shop), 10 (monthly bonus heartbeat), 11 (store filters)
+
+## Store Coin Discounts + Preview Modal (Jul 12 2026)
+- [x] Skill: create sanctuary-stripe-coins skill documenting Stripe shop + coin discount pattern
+- [x] Store: coin discount system — users can spend coins for % discount on digital art packs (100 coins = 10% off, max 50%)
+- [x] Store: tRPC procedure stripeShop.applyCoinDiscount — deducts coins, creates Stripe coupon, returns discounted checkout URL
+- [x] Store: show "Use Coins for Discount" buttons on eligible product cards (100–500 coins, 10–50% off, shows discounted price)
+- [x] Store: quick preview modal — gradient image placeholder per category, full description, features, price, buy + coin discount buttons
+- [x] Store: product preview images (gradient placeholder per category: art-pack=cyan/purple, creator-pack=indigo/blue, merch=teal, bundle=purple/pink)
