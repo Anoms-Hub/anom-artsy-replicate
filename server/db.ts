@@ -295,8 +295,11 @@ export async function getProfile(userId: number) {
 export async function updateProfile(userId: number, data: Partial<typeof profiles.$inferInsert>) {
   const db = await getDb();
   if (!db) return null;
-
-  await db.update(profiles).set(data).where(eq(profiles.userId, userId));
+  // Guard: Drizzle throws "No values to set" if every field is undefined
+  const clean = Object.fromEntries(Object.entries(data).filter(([, v]) => v !== undefined));
+  if (Object.keys(clean).length > 0) {
+    await db.update(profiles).set(clean).where(eq(profiles.userId, userId));
+  }
   return getProfile(userId);
 }
 
@@ -419,6 +422,11 @@ export async function updateMemberProfile(
   // gifUrl lives inside the customizationData JSON column so we merge it
   const { gifUrl, ...directFields } = data;
 
+  // Filter out undefined values so Drizzle never receives an empty .set({})
+  const cleanFields = Object.fromEntries(
+    Object.entries(directFields).filter(([, v]) => v !== undefined)
+  ) as typeof directFields;
+
   if (gifUrl !== undefined) {
     const existing = await db
       .select({ customizationData: profiles.customizationData })
@@ -429,11 +437,12 @@ export async function updateMemberProfile(
     const merged = { ...prev, gifUrl };
     await db
       .update(profiles)
-      .set({ ...directFields, customizationData: merged })
+      .set({ ...cleanFields, customizationData: merged })
       .where(eq(profiles.userId, userId));
-  } else {
-    await db.update(profiles).set({ ...directFields }).where(eq(profiles.userId, userId));
+  } else if (Object.keys(cleanFields).length > 0) {
+    await db.update(profiles).set({ ...cleanFields }).where(eq(profiles.userId, userId));
   }
+  // If nothing to update, skip the DB call entirely (no-op is valid)
 
   return getProfileByUserId(userId);
 }
