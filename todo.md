@@ -240,3 +240,12 @@
 - [x] Update upload endpoint (uploadRoutes.ts) to persist file metadata to admin_files table after S3 upload
 - [x] Replace localStorage file list in Admin.tsx with trpc.admin.adminFiles.list query
 - [x] Replace localStorage delete in Admin.tsx with trpc.admin.adminFiles.delete mutation
+
+## Universe Map Admin Extensions + Skill (Jul 12 2026)
+- [x] Universe Map: node_thumbnails DB table (nodeId, url, fileKey, updatedAt)
+- [x] Universe Map: tRPC admin procedures — getThumbnail(nodeId), setThumbnail(nodeId, url, fileKey)
+- [x] Universe Map: admin-only thumbnail upload button in detail panel (replaces emoji with uploaded image)
+- [x] Universe Map: show uploaded thumbnail in node detail panel and optionally in NodeCard
+- [x] EditableText: add toast notification on successful save
+- [x] Admin panel: localStorage migration button — reads admin-uploaded-files from localStorage, inserts into admin_files DB table, clears localStorage key
+- [x] Create reusable skill: sanctuary-feature-workflow updated with Patterns 5 & 6 (Universe Map admin features + localStorage migration)

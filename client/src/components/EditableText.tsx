@@ -13,6 +13,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { Pencil, Check, X } from "lucide-react";
 import { useState, useRef, useEffect, ElementType } from "react";
+import { toast } from "sonner";
 
 interface EditableTextProps {
   /** Unique key for this piece of content in the site_content table */
@@ -46,7 +47,11 @@ export default function EditableText({
 
   const utils = trpc.useUtils();
   const setContent = trpc.admin.content.set.useMutation({
-    onSuccess: () => utils.admin.content.getByKey.invalidate({ key: contentKey } as { key: string }),
+    onSuccess: () => {
+      utils.admin.content.getByKey.invalidate({ key: contentKey } as { key: string });
+      toast.success("Saved!", { description: `"${contentKey}" updated.` });
+    },
+    onError: (e) => toast.error(`Save failed: ${e.message}`),
   });
 
   const currentValue = data?.value ?? fallback;

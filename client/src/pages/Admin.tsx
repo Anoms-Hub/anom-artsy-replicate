@@ -41,6 +41,7 @@ import {
   Tag,
   Eye,
   ZoomIn,
+  Database,
 } from "lucide-react";
 import { RichTextEditor } from "@/components/RichTextEditor";
 
@@ -445,6 +446,42 @@ export default function Admin() {
     onError: (e) => toast.error(e.message),
   });
 
+  const migrateFiles = trpc.admin.adminFiles.migrateFromLocalStorage.useMutation({
+    onSuccess: (result) => {
+      utils.admin.adminFiles.list.invalidate();
+      if (result.migrated > 0) {
+        toast.success(`Migration complete!`, { description: `${result.migrated} file${result.migrated !== 1 ? "s" : ""} moved to the database.` });
+        // Clear localStorage key after successful migration
+        try { localStorage.removeItem("admin-uploaded-files"); } catch { /* ignore */ }
+      } else {
+        toast.info("Nothing to migrate.", { description: "No files found in localStorage, or all were already in the database." });
+      }
+    },
+    onError: (e) => toast.error(`Migration failed: ${e.message}`),
+  });
+
+  const handleMigrateLocalStorage = () => {
+    try {
+      const raw = localStorage.getItem("admin-uploaded-files");
+      if (!raw) { toast.info("Nothing to migrate.", { description: "No admin-uploaded-files key found in localStorage." }); return; }
+      const parsed = JSON.parse(raw) as Array<{ url: string; key: string; filename: string; mimetype: string; size?: number; uploadedAt?: number; category?: string }>;
+      if (!Array.isArray(parsed) || parsed.length === 0) { toast.info("Nothing to migrate."); return; }
+      const valid = parsed.filter(f => f.url && f.key && f.filename && f.mimetype).map(f => ({
+        url: f.url,
+        key: f.key,
+        filename: f.filename,
+        mimetype: f.mimetype,
+        size: f.size ?? 0,
+        uploadedAt: f.uploadedAt ?? Date.now(),
+        category: f.category ?? (f.mimetype.startsWith("image/") ? "images" : "files"),
+      }));
+      if (valid.length === 0) { toast.info("Nothing to migrate."); return; }
+      migrateFiles.mutate(valid);
+    } catch {
+      toast.error("Could not read localStorage data.");
+    }
+  };
+
   const handleFileUpload = async (file: File, _category: string) => {
     const formData = new FormData();
     formData.append("file", file);
@@ -804,12 +841,23 @@ export default function Admin() {
                   <h1 className="text-2xl font-bold text-foreground">Documents & Storage</h1>
                   <p className="text-muted-foreground mt-1">Your planning docs, concept files, images, and uploads. Private — only you can see these.</p>
                 </div>
-                <div className="flex gap-2 flex-shrink-0">
+                <div className="flex gap-2 flex-shrink-0 flex-wrap justify-end">
                   <Button size="sm" variant="outline" className="gap-2" onClick={() => { setShowNewDoc(true); setEditingDoc(null); setViewingDoc(null); setDocForm({ title: "", slug: "", content: "", category: "general", tags: [] }); }}>
                     <Plus className="w-4 h-4" /> New Text Doc
                   </Button>
                   <Button size="sm" className="gap-2" onClick={() => docFileInputRef.current?.click()}>
                     <Upload className="w-4 h-4" /> Upload File
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="gap-2 border-amber-500/40 text-amber-400 hover:bg-amber-500/10"
+                    onClick={handleMigrateLocalStorage}
+                    disabled={migrateFiles.isPending}
+                    title="Move any files stored in your browser's localStorage into the permanent database"
+                  >
+                    <Database className="w-4 h-4" />
+                    {migrateFiles.isPending ? "Migrating…" : "Migrate localStorage"}
                   </Button>
                   <input
                     ref={docFileInputRef}

@@ -1,11 +1,13 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Link } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { startLogin } from "@/const";
 import { useMissionAutoComplete } from "@/hooks/useMissionAutoComplete";
-import { ArrowLeft, Globe, Map, Star, Zap, Lock, ChevronRight, Users, Coins, BookOpen, Gamepad2 } from "lucide-react";
+import { ArrowLeft, Globe, Map, Star, Zap, Lock, ChevronRight, Users, Coins, BookOpen, Gamepad2, Camera, Trash2 } from "lucide-react";
 import EditableText from "@/components/EditableText";
 import { CopyrightFooter } from "@/components/CopyrightFooter";
+import { trpc } from "@/lib/trpc";
+import { toast } from "sonner";
 
 // ─── 4-Tier Hierarchy Data ──────────────────────────────────────────────────
 
@@ -230,9 +232,52 @@ function NodeCard({ node, onClick, isSelected }: { node: Node; onClick: () => vo
 // ─── Main Page ───────────────────────────────────────────────────────────────
 export default function UniverseMap() {
   useMissionAutoComplete();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
+  const isAdmin = user?.role === "admin";
   const [selectedId, setSelectedId] = useState<string>("ao-universe");
   const [activeTier, setActiveTier] = useState<Tier | "all">("all");
+  const [thumbnailUploading, setThumbnailUploading] = useState(false);
+  const thumbnailInputRef = useRef<HTMLInputElement>(null);
+
+  // Fetch thumbnail for the selected node
+  const thumbnailQuery = trpc.admin.nodeThumbnails.get.useQuery(
+    { nodeId: selectedId },
+    { enabled: !!selectedId }
+  );
+  const utils = trpc.useUtils();
+  const setThumbnail = trpc.admin.nodeThumbnails.set.useMutation({
+    onSuccess: () => {
+      utils.admin.nodeThumbnails.get.invalidate({ nodeId: selectedId });
+      toast.success("Thumbnail updated!");
+    },
+    onError: (e) => toast.error(e.message),
+  });
+  const deleteThumbnail = trpc.admin.nodeThumbnails.delete.useMutation({
+    onSuccess: () => {
+      utils.admin.nodeThumbnails.get.invalidate({ nodeId: selectedId });
+      toast.success("Thumbnail removed.");
+    },
+    onError: (e) => toast.error(e.message),
+  });
+
+  const handleThumbnailUpload = async (file: File) => {
+    setThumbnailUploading(true);
+    const formData = new FormData();
+    formData.append("file", file);
+    try {
+      const res = await fetch("/api/upload/admin-doc", { method: "POST", body: formData, credentials: "include" });
+      const data = await res.json() as { url?: string; key?: string; error?: string };
+      if (data.url && data.key) {
+        setThumbnail.mutate({ nodeId: selectedId, url: data.url, fileKey: data.key });
+      } else {
+        toast.error(data.error ?? "Upload failed");
+      }
+    } catch {
+      toast.error("Upload failed — network error");
+    } finally {
+      setThumbnailUploading(false);
+    }
+  };
 
   const selected = NODES[selectedId];
 
@@ -395,8 +440,60 @@ export default function UniverseMap() {
               className={`rounded-xl border ${selected.borderColor} bg-black/60 p-5`}
               style={{ boxShadow: `0 0 30px ${selected.glowColor}` }}
             >
+              {/* Admin thumbnail upload */}
+              {isAdmin && (
+                <div className="mb-4 rounded-lg border border-dashed border-cyan-500/30 bg-cyan-500/5 p-3">
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <p className="text-xs text-cyan-400 font-semibold uppercase tracking-wider">Node Thumbnail (Admin)</p>
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => thumbnailInputRef.current?.click()}
+                        disabled={thumbnailUploading}
+                        className="flex items-center gap-1 text-xs px-2 py-1 rounded border border-cyan-500/40 text-cyan-400 hover:bg-cyan-500/10 transition disabled:opacity-50"
+                      >
+                        <Camera className="w-3 h-3" />
+                        {thumbnailUploading ? "Uploading…" : thumbnailQuery.data ? "Change" : "Upload"}
+                      </button>
+                      {thumbnailQuery.data && (
+                        <button
+                          onClick={() => deleteThumbnail.mutate({ nodeId: selectedId })}
+                          className="flex items-center gap-1 text-xs px-2 py-1 rounded border border-red-500/40 text-red-400 hover:bg-red-500/10 transition"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                          Remove
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  {thumbnailQuery.data ? (
+                    <img
+                      src={thumbnailQuery.data.url}
+                      alt={`${selected.name} thumbnail`}
+                      className="w-full h-28 object-cover rounded-lg border border-white/10"
+                    />
+                  ) : (
+                    <p className="text-xs text-gray-500 text-center py-2">No thumbnail — emoji is shown instead</p>
+                  )}
+                  <input
+                    ref={thumbnailInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => { const f = e.target.files?.[0]; if (f) handleThumbnailUpload(f); e.target.value = ""; }}
+                  />
+                </div>
+              )}
+
               <div className="flex items-center gap-3 mb-4">
-                <span className="text-4xl">{selected.beingEmoji || "🌐"}</span>
+                {thumbnailQuery.data ? (
+                  <img
+                    src={thumbnailQuery.data.url}
+                    alt={selected.name}
+                    className="w-12 h-12 rounded-lg object-cover border border-white/20 shrink-0"
+                  />
+                ) : (
+                  <span className="text-4xl shrink-0">{selected.beingEmoji || "🌐"}</span>
+                )}
                 <div>
                   <p className={`text-xl font-bold bg-gradient-to-r ${selected.color} bg-clip-text text-transparent`}>
                     {selected.name}

@@ -535,3 +535,16 @@ export const adminFiles = mysqlTable("admin_files", {
 });
 export type AdminFile = typeof adminFiles.$inferSelect;
 export type InsertAdminFile = typeof adminFiles.$inferInsert;
+
+/**
+ * Node Thumbnails — custom thumbnail images for Universe Map world nodes
+ */
+export const nodeThumbnails = mysqlTable("node_thumbnails", {
+  id: int("id").autoincrement().primaryKey(),
+  nodeId: varchar("node_id", { length: 128 }).notNull().unique(),
+  url: varchar("url", { length: 2048 }).notNull(),
+  fileKey: varchar("file_key", { length: 512 }).notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
+});
+export type NodeThumbnail = typeof nodeThumbnails.$inferSelect;
+export type InsertNodeThumbnail = typeof nodeThumbnails.$inferInsert;

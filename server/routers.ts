@@ -30,7 +30,7 @@ import {
   isUsernameAvailable,
   getDb,
 } from "./db";
-import { shopItems, userPurchases, siteContent, adminDocuments, adminFiles } from "../drizzle/schema";
+import { shopItems, userPurchases, siteContent, adminDocuments, adminFiles, nodeThumbnails } from "../drizzle/schema";
 import { eq, and, desc, asc } from "drizzle-orm";
 import type { ShopItem } from "../drizzle/schema";
 import { invokeLLM, type Message as LLMMessage } from "./_core/llm";
@@ -559,6 +559,33 @@ const adminRouter = router({
         return rows[0] ?? null;
       }),
   }),
+  nodeThumbnails: router({
+    get: publicProcedure
+      .input(z.object({ nodeId: z.string() }))
+      .query(async ({ input }) => {
+        const db = await getDb();
+        if (!db) return null;
+        const rows = await db.select().from(nodeThumbnails).where(eq(nodeThumbnails.nodeId, input.nodeId)).limit(1);
+        return rows[0] ?? null;
+      }),
+    set: adminProcedure
+      .input(z.object({ nodeId: z.string().min(1).max(128), url: z.string().url(), fileKey: z.string().min(1) }))
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        if (!db) throw new Error("Database unavailable");
+        await db.insert(nodeThumbnails).values({ nodeId: input.nodeId, url: input.url, fileKey: input.fileKey })
+          .onDuplicateKeyUpdate({ set: { url: input.url, fileKey: input.fileKey } });
+        return { success: true };
+      }),
+    delete: adminProcedure
+      .input(z.object({ nodeId: z.string() }))
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        if (!db) throw new Error("Database unavailable");
+        await db.delete(nodeThumbnails).where(eq(nodeThumbnails.nodeId, input.nodeId));
+        return { success: true };
+      }),
+  }),
   adminFiles: router({
     list: adminProcedure.query(async () => {
       const db = await getDb();
@@ -572,6 +599,38 @@ const adminRouter = router({
         if (!db) throw new Error("Database unavailable");
         await db.delete(adminFiles).where(eq(adminFiles.id, input.id));
         return { success: true };
+      }),
+    migrateFromLocalStorage: adminProcedure
+      .input(z.array(z.object({
+        url: z.string().url(),
+        key: z.string().min(1),
+        filename: z.string().min(1).max(512),
+        mimetype: z.string().min(1).max(128),
+        size: z.number().int().nonnegative().default(0),
+        uploadedAt: z.number().int().positive(),
+        category: z.string().max(64).default("files"),
+      })).max(500))
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        if (!db) throw new Error("Database unavailable");
+        if (input.length === 0) return { migrated: 0 };
+        let migrated = 0;
+        for (const f of input) {
+          try {
+            await db.insert(adminFiles).values({
+              url: f.url,
+              fileKey: f.key,
+              filename: f.filename,
+              mimetype: f.mimetype,
+              size: f.size,
+              category: f.category,
+              uploadedAt: f.uploadedAt,
+              uploadedBy: "localStorage-migration",
+            }).onDuplicateKeyUpdate({ set: { url: f.url } });
+            migrated++;
+          } catch { /* skip duplicates */ }
+        }
+        return { migrated };
       }),
   }),
   docs: router({
