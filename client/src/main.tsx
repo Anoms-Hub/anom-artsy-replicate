@@ -6,6 +6,24 @@ import { createRoot } from "react-dom/client";
 import superjson from "superjson";
 import App from "./App";
 import { startLogin } from "./const";
+
+// Apply saved font preference globally on startup
+(function applyFont() {
+  const FONTS: Record<string, string> = {
+    "inter":        "'Inter', sans-serif",
+    "space-mono":   "'Space Mono', monospace",
+    "vt323":        "'VT323', monospace",
+    "share-tech":   "'Share Tech Mono', monospace",
+    "fira-code":    "'Fira Code', monospace",
+    "courier-new":  "'Courier New', Courier, monospace",
+  };
+  try {
+    const saved = localStorage.getItem("ao_font_id");
+    if (saved && FONTS[saved]) {
+      document.body.style.fontFamily = FONTS[saved];
+    }
+  } catch { /* ignore */ }
+})();
 import "./index.css";
 
 const queryClient = new QueryClient();

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, User, Sparkles, Shield, Check, X, Loader2, Save, Palette } from "lucide-react";
+import { ArrowLeft, User, Sparkles, Shield, Check, X, Loader2, Save, Palette, Type } from "lucide-react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { BeingSelectionModal, BEINGS } from "@/components/BeingSelectionModal";
@@ -10,6 +10,15 @@ import { useMissionAutoComplete } from "@/hooks/useMissionAutoComplete";
 import { toast } from "sonner";
 
 const PRIVILEGE_TIERS = ["Newcomer", "Citizen", "Member", "Contributor", "Guardian"];
+
+const FONTS = [
+  { id: "inter",        label: "Inter",           stack: "'Inter', sans-serif",                  preview: "The quick brown fox" },
+  { id: "space-mono",  label: "Space Mono",      stack: "'Space Mono', monospace",             preview: "The quick brown fox" },
+  { id: "vt323",       label: "VT323",           stack: "'VT323', monospace",                  preview: "THE QUICK BROWN FOX" },
+  { id: "share-tech",  label: "Share Tech Mono", stack: "'Share Tech Mono', monospace",        preview: "The quick brown fox" },
+  { id: "fira-code",   label: "Fira Code",       stack: "'Fira Code', monospace",              preview: "The quick brown fox" },
+  { id: "courier-new", label: "Courier New",     stack: "'Courier New', Courier, monospace",   preview: "The quick brown fox" },
+];
 
 const THEMES = [
   { id: "dark", label: "Dark", description: "Deep space black — the default AO look", preview: "bg-[#0a0015]" },
@@ -36,6 +45,18 @@ export default function Settings() {
   // Being modal
   const [showBeingModal, setShowBeingModal] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+
+  // Font selector — persisted to localStorage, applied globally
+  const [selectedFont, setSelectedFont] = useState(() => localStorage.getItem("ao_font_id") ?? "inter");
+
+  // Apply saved font on mount
+  useEffect(() => {
+    const saved = localStorage.getItem("ao_font_id");
+    if (saved) {
+      const font = FONTS.find(f => f.id === saved);
+      if (font) document.body.style.fontFamily = font.stack;
+    }
+  }, []);
 
   // Populate form once profile loads
   useEffect(() => {
@@ -323,6 +344,51 @@ export default function Settings() {
             <p className="text-xs text-slate-400">
               <span className="text-pink-300 font-semibold">Premium themes</span> — neon gradients, animated backgrounds, custom profile builds — are coming to the Pack Shop. Earn coins or purchase packs to unlock them.
             </p>
+          </div>
+        </Card>
+
+        {/* Font Selector Section */}
+        <Card className="bg-black/60 border-teal-500/30 p-6">
+          <div className="flex items-center gap-3 mb-5">
+            <div className="w-8 h-8 rounded-full bg-teal-500/20 flex items-center justify-center">
+              <Type className="w-4 h-4 text-teal-400" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-teal-300">Font</h2>
+              <p className="text-xs text-slate-500">Choose your preferred site font</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            {FONTS.map((font) => {
+              const isSelected = selectedFont === font.id;
+              return (
+                <button
+                  key={font.id}
+                  onClick={() => {
+                    setSelectedFont(font.id);
+                    localStorage.setItem("ao_font_id", font.id);
+                    document.body.style.fontFamily = font.stack;
+                    toast.success(`Font changed to ${font.label}`);
+                  }}
+                  className={`relative rounded-xl border p-4 text-left transition-all duration-200 ${
+                    isSelected
+                      ? "border-teal-400/60 bg-teal-500/10 shadow-[0_0_12px_rgba(0,200,180,0.15)]"
+                      : "border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/10"
+                  }`}
+                >
+                  <p className="text-sm mb-1 text-white" style={{ fontFamily: font.stack }}>
+                    {font.preview}
+                  </p>
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs text-slate-400">{font.label}</p>
+                    {isSelected && <Check className="w-4 h-4 text-teal-400 shrink-0" />}
+                  </div>
+                  {isSelected && (
+                    <span className="absolute top-2 right-2 text-xs px-1.5 py-0.5 rounded-full bg-teal-500/20 text-teal-300 border border-teal-500/30">Active</span>
+                  )}
+                </button>
+              );
+            })}
           </div>
         </Card>
 

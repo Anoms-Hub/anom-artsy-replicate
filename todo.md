@@ -152,3 +152,12 @@
 - [x] Add Off-Grid card to Games Hub at /games
 - [x] Register /games/off-grid route in App.tsx
 - [x] Add useMissionAutoComplete hook to OffGrid page
+
+## Off-Grid Terminal Enhancements (Jul 12 2026)
+- [x] Color-code terminal output: red for threats, green for success/clearance, yellow for shop items
+- [x] Auto-scroll terminal to bottom on new messages (useEffect on logs)
+- [x] CRT monitor visual effect: scanlines overlay, phosphor glow, screen flicker animation
+- [x] Create reusable skill: sanctuary-offgrid-game (documents the Off-Grid terminal game integration process)
+- [x] Settings page: font selector for site-wide font (Space Mono, VT323, Courier New, Share Tech Mono, Fira Code) — persisted to localStorage
+- [x] Off-Grid: slow threat spawn pacing (15s base interval, not 8s; scale with level)
+- [x] Off-Grid: add visual property panel showing homestead graphics (garden, solar panels, cabin) that upgrade with player level
