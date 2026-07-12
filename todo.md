@@ -207,3 +207,4 @@
 - [ ] Wire EditableText into Landing Page hero copy
 - [x] Register /admin route in App.tsx
 - [x] Upload sanctuary-master-plan.md and sanctuary-spark-concept.md to admin Documents
+- [x] Wire Admin link into profile dropdown nav (DashboardLayout sidebar footer) and Home.tsx header (admin-only, cyan neon style)

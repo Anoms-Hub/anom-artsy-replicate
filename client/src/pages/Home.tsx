@@ -70,6 +70,15 @@ export default function Home() {
               >
                 DASHBOARD
               </button>
+              {user?.role === "admin" && (
+                <button
+                  onClick={() => navigate("/admin")}
+                  className="neon-button text-sm"
+                  style={{ borderColor: "#00ffff", color: "#00ffff", textShadow: "0 0 8px #00ffff" }}
+                >
+                  ADMIN
+                </button>
+              )}
               <button
                 onClick={() => navigate("/settings")}
                 className="neon-button text-sm"
