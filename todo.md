@@ -214,3 +214,13 @@
 - [x] Admin: Help & Navigation tab — step-by-step clickable guide for every admin task with anchor links
 - [ ] Admin Storage: move uploaded file metadata from localStorage to DB (add admin_files table)
 - [ ] Admin Storage: add server-side delete endpoint that removes file from S3 storage
+
+## Admin Documents & Storage Enhancements (Jul 12 2026)
+- [ ] Admin Storage: drag-and-drop upload zone (DnD API, visual drop target with neon border)
+- [ ] Admin Storage: search bar to filter documents and files by name/title
+- [ ] Admin Storage: rich text editor for creating/editing text documents (Tiptap)
+- [ ] Create reusable skill: sanctuary-admin-panel (documents the admin panel build process)
+- [x] Admin: drag-and-drop upload zone with neon cyan active state in Documents & Storage tab
+- [x] Admin: Tiptap rich text editor (RichTextEditor component) for creating/editing text documents
+- [x] Admin: search bar in Documents & Storage — filters docs and files by name in real time
+- [x] Create sanctuary-admin-panel skill (documents full admin panel architecture and patterns)

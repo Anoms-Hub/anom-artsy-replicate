@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -37,7 +37,9 @@ import {
   Image,
   File,
   Link,
+  Search,
 } from "lucide-react";
+import { RichTextEditor } from "@/components/RichTextEditor";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type Tab = "overview" | "content" | "storage" | "help";
@@ -367,8 +369,9 @@ export default function Admin() {
   const [editingDoc, setEditingDoc] = useState<string | null>(null);
   const [docForm, setDocForm] = useState({ title: "", slug: "", content: "", category: "general" });
   const [showNewDoc, setShowNewDoc] = useState(false);
-  const [storageFilter, setStorageFilter] = useState("all");
-
+    const [storageFilter, setStorageFilter] = useState("all");
+  const [storageSearch, setStorageSearch] = useState("");
+  const [isDragOver, setIsDragOver] = useState(false);
   // Uploaded files state (stored in localStorage for session persistence)
   const [uploadedFiles, setUploadedFiles] = useState<StoredFile[]>(() => {
     try {
@@ -453,6 +456,28 @@ export default function Admin() {
     }
   };
 
+  // Drag-and-drop handlers
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(true);
+  }, []);
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+  }, []);
+  const handleDrop = useCallback(async (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+    const files = Array.from(e.dataTransfer.files);
+    for (const file of files) {
+      const cat = file.type.startsWith("image/") ? "images" : "files";
+      await handleFileUpload(file, cat);
+    }
+  }, [handleFileUpload]);
+
   // Auth guard
   if (loading) {
     return (
@@ -499,14 +524,19 @@ export default function Admin() {
 
   // ── Storage filter categories
   const filterCategories = ["all", "planning", "creative", "reference", "notes", "images", "files"];
+  const searchLower = storageSearch.toLowerCase();
   const filteredDocs = storageFilter === "all" || storageFilter === "planning" || storageFilter === "creative" || storageFilter === "reference" || storageFilter === "notes"
-    ? (docsQuery.data ?? []).filter(d => storageFilter === "all" || d.category === storageFilter)
+    ? (docsQuery.data ?? []).filter(d => {
+        const matchesFilter = storageFilter === "all" || d.category === storageFilter;
+        const matchesSearch = !searchLower || d.title.toLowerCase().includes(searchLower) || d.slug.toLowerCase().includes(searchLower);
+        return matchesFilter && matchesSearch;
+      })
     : [];
   const filteredFiles = storageFilter === "all" || storageFilter === "images" || storageFilter === "files"
     ? uploadedFiles.filter(f => {
-        if (storageFilter === "images") return f.mimetype.startsWith("image/");
-        if (storageFilter === "files") return !f.mimetype.startsWith("image/");
-        return true;
+        const matchesFilter = storageFilter === "all" || (storageFilter === "images" && f.mimetype.startsWith("image/")) || (storageFilter === "files" && !f.mimetype.startsWith("image/"));
+        const matchesSearch = !searchLower || f.filename.toLowerCase().includes(searchLower);
+        return matchesFilter && matchesSearch;
       })
     : [];
 
@@ -795,6 +825,54 @@ export default function Admin() {
                 ))}
               </div>
 
+              {/* Search bar */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+                <Input
+                  placeholder="Search documents and files by name..."
+                  value={storageSearch}
+                  onChange={(e) => setStorageSearch(e.target.value)}
+                  className="pl-9 bg-zinc-900/60 border-zinc-700 focus:border-cyan-500 transition-colors"
+                />
+                {storageSearch && (
+                  <button
+                    onClick={() => setStorageSearch("")}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+
+              {/* Drag-and-drop upload zone */}
+              {!showNewDoc && !editingDoc && !viewingDoc && (
+                <div
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  onClick={() => docFileInputRef.current?.click()}
+                  className={`relative border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all duration-200 ${
+                    isDragOver
+                      ? "border-cyan-400 bg-cyan-500/10 scale-[1.01]"
+                      : "border-zinc-700 hover:border-zinc-500 hover:bg-zinc-800/40"
+                  }`}
+                >
+                  <div className="flex flex-col items-center gap-2 pointer-events-none">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
+                      isDragOver ? "bg-cyan-500/20" : "bg-zinc-800"
+                    }`}>
+                      <Upload className={`w-5 h-5 transition-colors ${isDragOver ? "text-cyan-400" : "text-zinc-400"}` } />
+                    </div>
+                    <div>
+                      <p className={`text-sm font-medium transition-colors ${isDragOver ? "text-cyan-300" : "text-zinc-300"}`}>
+                        {isDragOver ? "Drop files here" : "Drag & drop files here, or click to browse"}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-0.5">Images, PDFs, Word docs, text files — up to 25 MB</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* New doc form */}
               {showNewDoc && (
                 <Card className="border-primary/50 bg-primary/5">
@@ -823,7 +901,12 @@ export default function Admin() {
                     </div>
                     <div className="space-y-1">
                       <Label>Content</Label>
-                      <Textarea placeholder="Start writing your document here..." value={docForm.content} onChange={(e) => setDocForm({ ...docForm, content: e.target.value })} rows={8} className="font-mono text-sm" />
+                      <RichTextEditor
+                        value={docForm.content}
+                        onChange={(html) => setDocForm({ ...docForm, content: html })}
+                        placeholder="Start writing your document here..."
+                        minHeight="200px"
+                      />
                     </div>
                     <div className="flex gap-2">
                       <Button size="sm" className="gap-2 bg-green-600 hover:bg-green-700" onClick={() => upsertDoc.mutate(docForm)} disabled={!docForm.title || upsertDoc.isPending}>
@@ -938,7 +1021,12 @@ export default function Admin() {
                         </div>
                         <div className="space-y-1">
                           <Label>Content</Label>
-                          <Textarea value={docForm.content} onChange={(e) => setDocForm({ ...docForm, content: e.target.value })} rows={16} className="font-mono text-sm" />
+                          <RichTextEditor
+                            value={docForm.content}
+                            onChange={(html) => setDocForm({ ...docForm, content: html })}
+                            placeholder="Edit your document here..."
+                            minHeight="350px"
+                          />
                         </div>
                         <div className="flex gap-2">
                           <Button size="sm" className="gap-2 bg-green-600 hover:bg-green-700" onClick={() => upsertDoc.mutate(docForm)} disabled={upsertDoc.isPending}>
