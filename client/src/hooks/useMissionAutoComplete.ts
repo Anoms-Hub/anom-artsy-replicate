@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
+import { triggerCoinDrop } from "@/components/CoinDropOverlay";
 
 /**
  * useMissionAutoComplete
@@ -45,6 +46,12 @@ export function useMissionAutoComplete() {
       utils.coins.getHistory.invalidate();
 
       const earned = result?.coinsEarned;
+
+      // Fire the coin drop animation overlay
+      if (earned && earned > 0) {
+        triggerCoinDrop(earned);
+      }
+
       toast.success("Mission Complete!", {
         description: earned
           ? `You earned +${earned} coins. Your balance has been updated.`

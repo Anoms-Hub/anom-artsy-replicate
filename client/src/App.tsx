@@ -22,6 +22,7 @@ import Settings from "@/pages/Settings";
 import TermsOfService from "@/pages/TermsOfService";
 import Lounge from "@/pages/Lounge";
 import Admin from "@/pages/Admin";
+import CoinDropOverlay from "@/components/CoinDropOverlay";
 
 function Router() {
   return (
@@ -57,7 +58,12 @@ function Router() {
 
 function AppInner() {
   useTheme(); // Apply user's saved theme from profile.backgroundId
-  return <Router />;
+  return (
+    <>
+      <CoinDropOverlay />
+      <Router />
+    </>
+  );
 }
 
 function App() {

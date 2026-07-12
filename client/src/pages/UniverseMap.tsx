@@ -4,6 +4,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { startLogin } from "@/const";
 import { useMissionAutoComplete } from "@/hooks/useMissionAutoComplete";
 import { ArrowLeft, Globe, Map, Star, Zap, Lock, ChevronRight, Users, Coins, BookOpen, Gamepad2, Camera, Trash2 } from "lucide-react";
+import CoinBalancePill from "@/components/CoinBalancePill";
 import EditableText from "@/components/EditableText";
 import { CopyrightFooter } from "@/components/CopyrightFooter";
 import { trpc } from "@/lib/trpc";
@@ -327,6 +328,7 @@ export default function UniverseMap() {
             </div>
           </div>
           <div className="flex items-center gap-3">
+            {isAuthenticated && <CoinBalancePill />}
             {!isAuthenticated && (
               <button
                 onClick={() => startLogin()}
@@ -572,7 +574,19 @@ export default function UniverseMap() {
               )}
 
               {/* Travel button */}
-              {selected.route && selected.status === "live" ? (
+              {selected.id === "ao-universe" ? (
+                <div className="space-y-2">
+                  <div className="w-full py-2 rounded-lg bg-gradient-to-r from-pink-500/20 to-cyan-500/20 border border-pink-500/30 text-center">
+                    <span className="text-sm font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-cyan-400">✦ You Are Here — The AO Universe ✦</span>
+                  </div>
+                  <button
+                    onClick={() => setSelectedId("ao-city")}
+                    className="w-full py-2.5 rounded-lg bg-gradient-to-r from-cyan-500 to-purple-500 text-white font-bold text-sm hover:opacity-90 transition"
+                  >
+                    Explore AO-City →
+                  </button>
+                </div>
+              ) : selected.route && selected.status === "live" ? (
                 <Link href={selected.route}>
                   <button className={`w-full py-2.5 rounded-lg bg-gradient-to-r ${selected.color} text-white font-bold text-sm hover:opacity-90 transition`}>
                     Travel Here →

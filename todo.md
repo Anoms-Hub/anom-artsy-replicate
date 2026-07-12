@@ -249,3 +249,9 @@
 - [x] EditableText: add toast notification on successful save
 - [x] Admin panel: localStorage migration button — reads admin-uploaded-files from localStorage, inserts into admin_files DB table, clears localStorage key
 - [x] Create reusable skill: sanctuary-feature-workflow updated with Patterns 5 & 6 (Universe Map admin features + localStorage migration)
+
+## Nav Coin Balance, Mission Animation, AO Universe Fix (Jul 12 2026)
+- [x] Nav bar: CoinBalancePill component added to Universe Map header (live balance, flashes + confetti on increase)
+- [x] Mission complete: CoinDropOverlay — full-screen coin rain + "+N Coins Earned!" label, mounted globally in App.tsx, triggered from useMissionAutoComplete
+- [x] Fix: ao-universe node now shows "You Are Here" pill + "Explore AO-City" button instead of dead click
+- [x] sanctuary-feature-workflow skill updated with Patterns 7 (CoinBalancePill + CoinDropOverlay) and 8 (Universe Map node without route) + Common Pitfalls expanded
