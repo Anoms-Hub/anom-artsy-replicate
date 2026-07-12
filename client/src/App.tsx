@@ -11,7 +11,9 @@ import UniverseMap from "./pages/UniverseMap";
 import FinancialDistrict from "./pages/FinancialDistrict";
 import CreatorWorlds from "./pages/CreatorWorlds";
 import MemberProfile from "@/pages/MemberProfile";
-import AnomsCorner from "@/pages/AnomsCorner";
+import AnomsCorner from "./pages/AnomsCorner";
+import AdminShop from "./pages/AdminShop";
+import Shop from "./pages/Shop";
 import WorkGallery from "@/pages/WorkGallery";
 import CustomServices from "@/pages/CustomServices";
 import Settings from "@/pages/Settings";
@@ -28,7 +30,9 @@ function Router() {
       <Route path={"/financial-district"} component={FinancialDistrict} />
       <Route path={"/worlds"} component={CreatorWorlds} />
       <Route path={"/profile/:username"} component={MemberProfile} />
-      <Route path={"/anoms-corner"} component={AnomsCorner} />
+      <Route path="/anoms-corner" component={AnomsCorner} />
+        <Route path="/admin/shop" component={AdminShop} />
+        <Route path="/shop" component={Shop} />
       <Route path={"/work"} component={WorkGallery} />
       <Route path={"/services"} component={CustomServices} />
       <Route path={"/settings"} component={Settings} />

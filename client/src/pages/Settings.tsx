@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, User, Sparkles, Shield, Check, X, Loader2, Save } from "lucide-react";
+import { ArrowLeft, User, Sparkles, Shield, Check, X, Loader2, Save, Palette } from "lucide-react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { BeingSelectionModal, BEINGS } from "@/components/BeingSelectionModal";
@@ -10,6 +10,13 @@ import { useMissionAutoComplete } from "@/hooks/useMissionAutoComplete";
 import { toast } from "sonner";
 
 const PRIVILEGE_TIERS = ["Newcomer", "Citizen", "Member", "Contributor", "Guardian"];
+
+const THEMES = [
+  { id: "dark", label: "Dark", description: "Deep space black — the default AO look", preview: "bg-[#0a0015]" },
+  { id: "light", label: "Light", description: "Clean white with soft accents", preview: "bg-slate-100" },
+  { id: "neon-blue", label: "Neon Blue", description: "Electric cyan command center", preview: "bg-[#001a2e]" },
+  { id: "neon-purple", label: "Neon Purple", description: "Deep violet with pink glow", preview: "bg-[#0d0025]" },
+];
 
 export default function Settings() {
   useMissionAutoComplete();
@@ -265,6 +272,58 @@ export default function Settings() {
               </Button>
             </div>
           )}
+        </Card>
+
+        {/* Theme Section */}
+        <Card className="bg-black/60 border-yellow-500/30 p-6">
+          <div className="flex items-center gap-3 mb-5">
+            <div className="w-8 h-8 rounded-full bg-yellow-500/20 flex items-center justify-center">
+              <Palette className="w-4 h-4 text-yellow-400" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-yellow-300">Theme</h2>
+              <p className="text-xs text-slate-500">Free basic themes — premium packs coming to the shop</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            {THEMES.map((theme) => {
+              const isSelected = (profile?.backgroundId || "dark") === theme.id;
+              return (
+                <button
+                  key={theme.id}
+                  onClick={() => {
+                    updateBeingMutation.mutate({ backgroundId: theme.id });
+                    toast.success(`Theme changed to ${theme.label}`);
+                  }}
+                  className={`relative rounded-xl border p-4 text-left transition-all duration-200 ${
+                    isSelected
+                      ? "border-yellow-400/60 bg-yellow-500/10 shadow-[0_0_12px_rgba(234,179,8,0.2)]"
+                      : "border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/10"
+                  }`}
+                >
+                  <div className={`w-full h-8 rounded-md mb-3 ${theme.preview} border border-white/10`} />
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-bold text-white">{theme.label}</p>
+                      <p className="text-xs text-slate-500 mt-0.5">{theme.description}</p>
+                    </div>
+                    {isSelected && <Check className="w-4 h-4 text-yellow-400 shrink-0" />}
+                  </div>
+                  {isSelected && (
+                    <span className="absolute top-2 right-2 text-xs px-1.5 py-0.5 rounded-full bg-yellow-500/20 text-yellow-300 border border-yellow-500/30">Active</span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="mt-4 p-3 rounded-lg bg-white/5 border border-white/10 flex items-center gap-3">
+            <Sparkles className="w-4 h-4 text-pink-400 shrink-0" />
+            <p className="text-xs text-slate-400">
+              <span className="text-pink-300 font-semibold">Premium themes</span> — neon gradients, animated backgrounds, custom profile builds — are coming to the Pack Shop. Earn coins or purchase packs to unlock them.
+            </p>
+          </div>
         </Card>
 
         {/* Account Info Section */}

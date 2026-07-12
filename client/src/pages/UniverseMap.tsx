@@ -70,7 +70,7 @@ const NODES: Record<string, Node> = {
     color: "from-purple-500 to-pink-500",
     glowColor: "rgba(168,85,247,0.35)",
     borderColor: "border-purple-500/60",
-    status: "coming",
+    status: "live",
     route: "/worlds",
     description: "Any verified creator can build and publish their own world — a sovereign node in the AO multiverse with original beings, missions, and lore. Creator worlds run on AO infrastructure but are owned by their creators.",
     children: ["creator-world-1"],
@@ -117,7 +117,7 @@ const NODES: Record<string, Node> = {
     color: "from-green-400 to-cyan-500",
     glowColor: "rgba(74,222,128,0.3)",
     borderColor: "border-green-400/50",
-    status: "coming",
+    status: "live",
     route: "/financial-district",
     description: "Where fiscal responsibility is taught through the coin economy. Security Bot X-9 guides members through savings, checking, credit, and the Social Good Score system.",
     socialGoodPillar: "Education",
@@ -264,7 +264,7 @@ export default function UniverseMap() {
             <Link href="/dashboard">
               <button className="flex items-center gap-2 text-gray-400 hover:text-cyan-400 transition text-sm">
                 <ArrowLeft className="w-4 h-4" />
-                Dashboard
+                Mission Hub
               </button>
             </Link>
             <div className="w-px h-5 bg-gray-700" />
@@ -508,28 +508,46 @@ export default function UniverseMap() {
                     <ChevronRight className="w-3 h-3 text-gray-600 ml-auto" />
                   </button>
                 </Link>
-                <button
-                  disabled
-                  className="w-full flex items-center gap-3 p-2.5 rounded-lg opacity-40 cursor-not-allowed text-left"
-                >
-                  <BookOpen className="w-4 h-4 text-green-400" />
-                  <div>
-                    <p className="text-sm text-white">Financial District</p>
-                    <p className="text-xs text-gray-500">Coming Soon</p>
-                  </div>
-                  <Lock className="w-3 h-3 text-gray-600 ml-auto" />
-                </button>
-                <button
-                  disabled
-                  className="w-full flex items-center gap-3 p-2.5 rounded-lg opacity-40 cursor-not-allowed text-left"
-                >
-                  <Globe className="w-4 h-4 text-purple-400" />
-                  <div>
-                    <p className="text-sm text-white">Creator Worlds</p>
-                    <p className="text-xs text-gray-500">Coming Soon</p>
-                  </div>
-                  <Lock className="w-3 h-3 text-gray-600 ml-auto" />
-                </button>
+                <Link href="/financial-district">
+                  <button className="w-full flex items-center gap-3 p-2.5 rounded-lg hover:bg-white/5 transition text-left">
+                    <BookOpen className="w-4 h-4 text-green-400" />
+                    <div>
+                      <p className="text-sm text-white">Financial District</p>
+                      <p className="text-xs text-gray-500">Security Bot X-9's Domain</p>
+                    </div>
+                    <ChevronRight className="w-3 h-3 text-gray-600 ml-auto" />
+                  </button>
+                </Link>
+                <Link href="/worlds">
+                  <button className="w-full flex items-center gap-3 p-2.5 rounded-lg hover:bg-white/5 transition text-left">
+                    <Globe className="w-4 h-4 text-purple-400" />
+                    <div>
+                      <p className="text-sm text-white">Creator Worlds</p>
+                      <p className="text-xs text-gray-500">Sovereign Creative Territories</p>
+                    </div>
+                    <ChevronRight className="w-3 h-3 text-gray-600 ml-auto" />
+                  </button>
+                </Link>
+                <Link href="/lounge">
+                  <button className="w-full flex items-center gap-3 p-2.5 rounded-lg hover:bg-white/5 transition text-left">
+                    <Users className="w-4 h-4 text-cyan-400" />
+                    <div>
+                      <p className="text-sm text-white">Lounges</p>
+                      <p className="text-xs text-gray-500">Community Spaces</p>
+                    </div>
+                    <ChevronRight className="w-3 h-3 text-gray-600 ml-auto" />
+                  </button>
+                </Link>
+                <Link href="/anoms-corner">
+                  <button className="w-full flex items-center gap-3 p-2.5 rounded-lg hover:bg-white/5 transition text-left">
+                    <Star className="w-4 h-4 text-pink-400" />
+                    <div>
+                      <p className="text-sm text-white">Anom's Corner</p>
+                      <p className="text-xs text-gray-500">Creator Hub</p>
+                    </div>
+                    <ChevronRight className="w-3 h-3 text-gray-600 ml-auto" />
+                  </button>
+                </Link>
               </div>
             </div>
 

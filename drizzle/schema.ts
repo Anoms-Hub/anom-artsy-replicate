@@ -434,3 +434,56 @@ export const profileVisitorsRelations = relations(profileVisitors, ({ one }) => 
     relationName: "profileVisitors",
   }),
 }));
+
+/**
+ * Shop Items — cosmetic items created by Anom for the store
+ */
+export const shopItems = mysqlTable("shopItems", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 128 }).notNull(),
+  description: text("description"),
+  type: mysqlEnum("type", ["sticker", "background", "emote", "profile_build", "gif_pack", "color_theme", "decoration"]).notNull(),
+  tier: mysqlEnum("tier", ["free", "coin", "starter", "creator", "elite"]).default("coin").notNull(),
+  coinPrice: int("coinPrice").default(0),
+  realPrice: decimal("realPrice", { precision: 10, scale: 2 }),
+  imageUrl: text("imageUrl"),
+  previewUrl: text("previewUrl"),
+  isActive: boolean("isActive").default(true).notNull(),
+  sortOrder: int("sortOrder").default(0),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type ShopItem = typeof shopItems.$inferSelect;
+export type InsertShopItem = typeof shopItems.$inferInsert;
+
+/**
+ * User Purchases — tracks which shop items a user has purchased/unlocked
+ */
+export const userPurchases = mysqlTable("userPurchases", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  shopItemId: int("shopItemId").notNull(),
+  purchaseType: mysqlEnum("purchaseType", ["coins", "stripe", "achievement", "free"]).notNull(),
+  coinSpent: int("coinSpent").default(0),
+  stripePaymentId: varchar("stripePaymentId", { length: 256 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type UserPurchase = typeof userPurchases.$inferSelect;
+export type InsertUserPurchase = typeof userPurchases.$inferInsert;
+
+export const shopItemsRelations = relations(shopItems, ({ many }) => ({
+  purchases: many(userPurchases),
+}));
+
+export const userPurchasesRelations = relations(userPurchases, ({ one }) => ({
+  user: one(users, {
+    fields: [userPurchases.userId],
+    references: [users.id],
+  }),
+  shopItem: one(shopItems, {
+    fields: [userPurchases.shopItemId],
+    references: [shopItems.id],
+  }),
+}));

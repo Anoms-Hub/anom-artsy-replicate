@@ -28,7 +28,11 @@ import {
   recordProfileVisit,
   getRecentVisitors,
   isUsernameAvailable,
+  getDb,
 } from "./db";
+import { shopItems, userPurchases } from "../drizzle/schema";
+import { eq, and, desc } from "drizzle-orm";
+import type { ShopItem } from "../drizzle/schema";
 
 /**
  * Mission Router - Community contribution tasks and rewards
@@ -315,6 +319,139 @@ const ownerRouter = router({
 });
 
 /**
+ * Shop Router - Cosmetic items store (admin upload + member purchase)
+ */
+const shopRouter = router({
+  // Admin: create a new shop item
+  createItem: adminProcedure
+    .input(z.object({
+      name: z.string().min(1).max(128),
+      description: z.string().optional(),
+      type: z.enum(["sticker", "background", "emote", "profile_build", "gif_pack", "color_theme", "decoration"]),
+      tier: z.enum(["free", "coin", "starter", "creator", "elite"]).default("coin"),
+      coinPrice: z.number().int().min(0).default(0),
+      realPrice: z.number().min(0).optional(),
+      imageUrl: z.string().url().optional(),
+      previewUrl: z.string().url().optional(),
+      sortOrder: z.number().int().default(0),
+    }))
+    .mutation(async ({ input }) => {
+      const db = await getDb();
+      if (!db) throw new Error("Database unavailable");
+      const [item] = await db.insert(shopItems).values({
+        name: input.name,
+        description: input.description,
+        type: input.type,
+        tier: input.tier,
+        coinPrice: input.coinPrice,
+        realPrice: input.realPrice?.toString(),
+        imageUrl: input.imageUrl,
+        previewUrl: input.previewUrl,
+        sortOrder: input.sortOrder,
+        isActive: true,
+      }).$returningId();
+      return { id: item.id };
+    }),
+
+  // Admin: update a shop item
+  updateItem: adminProcedure
+    .input(z.object({
+      id: z.number().int(),
+      name: z.string().min(1).max(128).optional(),
+      description: z.string().optional(),
+      type: z.enum(["sticker", "background", "emote", "profile_build", "gif_pack", "color_theme", "decoration"]).optional(),
+      tier: z.enum(["free", "coin", "starter", "creator", "elite"]).optional(),
+      coinPrice: z.number().int().min(0).optional(),
+      realPrice: z.number().min(0).optional(),
+      imageUrl: z.string().url().optional(),
+      previewUrl: z.string().url().optional(),
+      isActive: z.boolean().optional(),
+      sortOrder: z.number().int().optional(),
+    }))
+    .mutation(async ({ input }) => {
+      const db = await getDb();
+      if (!db) throw new Error("Database unavailable");
+      const { id, realPrice, ...rest } = input;
+      await db.update(shopItems)
+        .set({ ...rest, ...(realPrice !== undefined ? { realPrice: realPrice.toString() } : {}) })
+        .where(eq(shopItems.id, id));
+      return { success: true };
+    }),
+
+  // Admin: delete a shop item
+  deleteItem: adminProcedure
+    .input(z.object({ id: z.number().int() }))
+    .mutation(async ({ input }) => {
+      const db = await getDb();
+      if (!db) throw new Error("Database unavailable");
+      await db.update(shopItems).set({ isActive: false }).where(eq(shopItems.id, input.id));
+      return { success: true };
+    }),
+
+  // Admin: get all items (including inactive)
+  getAllItems: adminProcedure.query(async () => {
+    const db = await getDb();
+    if (!db) return [];
+    return db.select().from(shopItems).orderBy(desc(shopItems.sortOrder), desc(shopItems.createdAt));
+  }),
+
+  // Member: browse active shop items
+  getItems: publicProcedure
+    .input(z.object({
+      type: z.enum(["sticker", "background", "emote", "profile_build", "gif_pack", "color_theme", "decoration"]).optional(),
+      tier: z.enum(["free", "coin", "starter", "creator", "elite"]).optional(),
+    }).optional())
+    .query(async ({ input }) => {
+      const db = await getDb();
+      if (!db) return [];
+      const items = await db.select().from(shopItems)
+        .where(eq(shopItems.isActive, true))
+        .orderBy(shopItems.sortOrder, desc(shopItems.createdAt));
+      if (input?.type) return items.filter((i: ShopItem) => i.type === input.type);
+      if (input?.tier) return items.filter((i: ShopItem) => i.tier === input.tier);
+      return items;
+    }),
+
+  // Member: get my purchased items
+  getMyPurchases: protectedProcedure.query(async ({ ctx }) => {
+    const db = await getDb();
+    if (!db) return [];
+    return db.select({ purchase: userPurchases, item: shopItems })
+      .from(userPurchases)
+      .innerJoin(shopItems, eq(userPurchases.shopItemId, shopItems.id))
+      .where(eq(userPurchases.userId, ctx.user.id))
+      .orderBy(desc(userPurchases.createdAt));
+  }),
+
+  // Member: purchase with coins
+  purchaseWithCoins: protectedProcedure
+    .input(z.object({ shopItemId: z.number().int() }))
+    .mutation(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db) throw new Error("Database unavailable");
+      // Get item
+      const [item] = await db.select().from(shopItems)
+        .where(and(eq(shopItems.id, input.shopItemId), eq(shopItems.isActive, true)));
+      if (!item) throw new Error("Item not found");
+      if (!item.coinPrice || item.coinPrice <= 0) throw new Error("This item cannot be purchased with coins");
+
+      // Check if already purchased
+      const existing = await db.select().from(userPurchases)
+        .where(and(eq(userPurchases.userId, ctx.user.id), eq(userPurchases.shopItemId, input.shopItemId)));
+      if (existing.length > 0) throw new Error("You already own this item");
+
+      // Record the purchase
+      await db.insert(userPurchases).values({
+        userId: ctx.user.id,
+        shopItemId: input.shopItemId,
+        purchaseType: "coins",
+        coinSpent: item.coinPrice,
+      });
+      return { success: true, item };
+    }),
+});
+
+/**
  * Main App Router - Combines all feature routers
  */
 export const appRouter = router({
@@ -336,6 +473,7 @@ export const appRouter = router({
   feed: feedRouter,
   lounges: loungeRouter,
   owner: ownerRouter,
+  shop: shopRouter,
 });
 
 export type AppRouter = typeof appRouter;

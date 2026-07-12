@@ -20,7 +20,7 @@ export default function Home() {
   // Redirect to dashboard if already logged in (using useEffect to avoid render-time navigation)
   useEffect(() => {
     if (isAuthenticated && user) {
-      navigate("/dashboard");
+      navigate("/universe");
     }
   }, [isAuthenticated, user, navigate]);
 

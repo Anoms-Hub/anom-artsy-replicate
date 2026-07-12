@@ -223,6 +223,14 @@ export default function Dashboard() {
                       Anom's Corner
                     </button>
                   </Link>
+                  {(user as any)?.role === "admin" && (
+                    <Link href="/admin/shop" onClick={() => setShowMenu(false)}>
+                      <button className="w-full text-left px-4 py-2 hover:bg-yellow-500/20 text-yellow-300 flex items-center gap-2">
+                        <span className="text-sm">🛍️</span>
+                        Shop Manager
+                      </button>
+                    </Link>
+                  )}
                   <button
                     onClick={() => logout()}
                     className="w-full text-left px-4 py-2 hover:bg-red-500/20 text-red-400 flex items-center gap-2 border-t border-pink-500/30"

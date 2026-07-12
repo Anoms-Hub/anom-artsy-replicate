@@ -90,3 +90,49 @@
 - [x] Update MissionDetailModal: "Go Complete This Mission" button navigates to actionUrl?completeMission=ID
 - [x] Add useMissionAutoComplete hook — reads ?completeMission=ID from URL, auto-fires mutation, shows success toast, strips param
 - [x] Wire hook into Dashboard, Settings, UniverseMap, FinancialDistrict, AnomsCorner
+
+## Mission Redesign + Universe Home (Jul 11 2026)
+- [ ] Replace all 10 current missions with a proper onboarding feature-tour sequence (profile customization first, then platform exploration)
+- [ ] Remove Lounge as a mission destination — Lounges are a Division, not an onboarding task
+- [ ] Update all mission actionUrl values to match the new sequence
+- [ ] Redesign post-login home as the AO Universe neon visual map (interactive districts)
+- [ ] Wire universe map districts to their destination pages
+
+## Identity Customization System
+- [x] Add theme selector to Settings page — free basic themes: Dark (default), Light, Neon Blue, Neon Purple
+- [ ] Persist theme selection through profile mutation into profiles.backgroundId and hydrate on load
+- [ ] Apply selected theme globally via ThemeProvider / CSS variables (CSS variable switching not yet wired)
+- [x] Build Coin Shop page (/shop) — cosmetics purchasable with Anom Coins, filter by type and tier
+- [ ] Build Pack Shop Stripe payment flow — real-money pack purchases (Stripe integration pending)
+- [x] Define pack tiers: Coin, Starter Pack, Creator Pack, Elite Pack
+- [ ] Achievement unlock system — milestone rewards that cannot be purchased, only earned
+
+## Admin Creator Shop
+- [x] Build admin shop item management UI (/admin/shop) — create/edit/toggle/delete items with metadata
+- [ ] Add real file upload to admin shop (file picker + S3 storage upload, not just URL entry)
+- [x] Add shopItems and userPurchases tables to drizzle schema
+- [x] Add admin-only tRPC procedures: createShopItem, updateShopItem, toggleShopItem, deleteShopItem
+- [x] Add member-facing tRPC procedures: getItems, getMyPurchases, purchaseWithCoins
+- [ ] Connect Stripe for real-money pack purchases (Stripe integration pending)
+- [x] Build item preview / "try on" before purchase (hover preview via previewUrl field)
+- [x] Add Shop Manager link to Dashboard hamburger menu (admin only)
+
+## Anomoly AI Division (Planned)
+- [ ] Confirm Anomoly's name spelling and role with Anom
+- [ ] Build Anomoly AI Division page (/anomoly) — Division #8 in the 12 AO Universe Divisions
+- [ ] Integrate Anomoly as platform guide chatbot (uses built-in LLM with AO Universe persona)
+- [ ] Add Anomoly to the Universe Map as a district node
+- [ ] Add Anomoly welcome message on first login (alongside Being Selection)
+
+## Content Pages (Pending — Shells Exist)
+- [ ] Build Work/Gallery page (/work) — 6 art lanes: Backgrounds, Profile Pictures, Mood Collection, Merch Designs, MP4 Motion Vault, Lifestyle & Gear
+- [ ] Build Custom Services page (/services) — digital commissions, PayPal payment links, FB Marketplace CTA
+- [ ] Build Merch page (/merch) — Spreadshop embed, Printful products, buyer pays shipping
+
+## Universe Home Redesign
+- [x] Replace all 10 missions with proper onboarding feature-tour sequence
+- [x] Remove Lounge as a mission destination
+- [x] Change post-login redirect from /dashboard to /universe
+- [x] Fix UniverseMap Quick Travel — Financial District and Creator Worlds now live (were disabled)
+- [x] Add Lounge and Anom's Corner to Quick Travel panel
+- [x] Update UniverseMap header nav label from "Dashboard" to "Mission Hub"
