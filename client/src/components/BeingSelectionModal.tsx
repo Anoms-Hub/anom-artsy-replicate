@@ -85,9 +85,11 @@ const BEINGS: Being[] = [
 interface BeingSelectionModalProps {
   open: boolean;
   onComplete: () => void;
+  /** Optional label for the final CTA button. Defaults to "Head to Missions →" */
+  completeCta?: string;
 }
 
-export function BeingSelectionModal({ open, onComplete }: BeingSelectionModalProps) {
+export function BeingSelectionModal({ open, onComplete, completeCta = "Head to Missions →" }: BeingSelectionModalProps) {
   const [step, setStep] = useState<"select" | "name" | "done">("select");
   const [selectedBeing, setSelectedBeing] = useState<Being | null>(null);
   const [beingName, setBeingName] = useState("");
@@ -130,9 +132,6 @@ export function BeingSelectionModal({ open, onComplete }: BeingSelectionModalPro
       });
       await utils.profiles.getMyFullProfile.invalidate();
       setStep("done");
-      setTimeout(() => {
-        onComplete();
-      }, 1800);
     } catch (e: any) {
       setError(e.message || "Something went wrong. Please try again.");
     } finally {
@@ -321,6 +320,14 @@ export function BeingSelectionModal({ open, onComplete }: BeingSelectionModalPro
                   style={{ animationDelay: `${i * 150}ms` }}
                 />
               ))}
+            </div>
+            <div className="pt-2">
+              <Button
+                onClick={onComplete}
+                className="bg-purple-600 hover:bg-purple-500 text-white gap-2 px-6"
+              >
+                {completeCta}
+              </Button>
             </div>
           </div>
         )}
