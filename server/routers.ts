@@ -579,12 +579,14 @@ const adminRouter = router({
         title: z.string().min(1).max(256),
         content: z.string(),
         category: z.string().max(128).default("general"),
+        tags: z.array(z.string().max(64)).max(20).default([]),
       }))
       .mutation(async ({ input }) => {
         const db = await getDb();
         if (!db) throw new Error("Database unavailable");
-        await db.insert(adminDocuments).values(input).onDuplicateKeyUpdate({
-          set: { title: input.title, content: input.content, category: input.category },
+        const tagsJson = JSON.stringify(input.tags);
+        await db.insert(adminDocuments).values({ ...input, tags: tagsJson }).onDuplicateKeyUpdate({
+          set: { title: input.title, content: input.content, category: input.category, tags: tagsJson },
         });
         return { success: true };
       }),

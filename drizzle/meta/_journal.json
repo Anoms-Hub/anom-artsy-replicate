@@ -43,6 +43,13 @@
       "when": 1783822244941,
       "tag": "0005_previous_tyger_tiger",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1783824598166,
+      "tag": "0006_boring_ser_duncan",
+      "breakpoints": true
     }
   ]
 }

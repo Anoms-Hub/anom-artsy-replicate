@@ -512,6 +512,7 @@ export const adminDocuments = mysqlTable("admin_documents", {
   slug: varchar("slug", { length: 256 }).notNull().unique(),
   content: text("content").notNull(),
   category: varchar("category", { length: 128 }).notNull().default("general"),
+  tags: varchar("tags", { length: 1024 }).notNull().default("[]"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });

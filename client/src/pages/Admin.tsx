@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect, KeyboardEvent } from "react";
 import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -38,6 +38,9 @@ import {
   File,
   Link,
   Search,
+  Tag,
+  Eye,
+  ZoomIn,
 } from "lucide-react";
 import { RichTextEditor } from "@/components/RichTextEditor";
 
@@ -367,11 +370,17 @@ export default function Admin() {
   // Documents state
   const [viewingDoc, setViewingDoc] = useState<string | null>(null);
   const [editingDoc, setEditingDoc] = useState<string | null>(null);
-  const [docForm, setDocForm] = useState({ title: "", slug: "", content: "", category: "general" });
+  const [docForm, setDocForm] = useState({ title: "", slug: "", content: "", category: "general", tags: [] as string[] });
   const [showNewDoc, setShowNewDoc] = useState(false);
-    const [storageFilter, setStorageFilter] = useState("all");
+  const [storageFilter, setStorageFilter] = useState("all");
   const [storageSearch, setStorageSearch] = useState("");
   const [isDragOver, setIsDragOver] = useState(false);
+  const [activeTagFilter, setActiveTagFilter] = useState<string | null>(null);
+  // Preview modal state
+  const [previewFile, setPreviewFile] = useState<StoredFile | null>(null);
+  const [previewDocSlug, setPreviewDocSlug] = useState<string | null>(null);
+  // Tag input state per doc card (slug -> current input value)
+  const [tagInputs, setTagInputs] = useState<Record<string, string>>({});
   // Uploaded files state (stored in localStorage for session persistence)
   const [uploadedFiles, setUploadedFiles] = useState<StoredFile[]>(() => {
     try {
@@ -409,7 +418,7 @@ export default function Admin() {
       utils.admin.docs.list.invalidate();
       setEditingDoc(null);
       setShowNewDoc(false);
-      setDocForm({ title: "", slug: "", content: "", category: "general" });
+      setDocForm({ title: "", slug: "", content: "", category: "general", tags: [] });
       toast.success("Document saved!");
     },
     onError: (e) => toast.error(e.message),
@@ -525,11 +534,22 @@ export default function Admin() {
   // ── Storage filter categories
   const filterCategories = ["all", "planning", "creative", "reference", "notes", "images", "files"];
   const searchLower = storageSearch.toLowerCase();
+
+  // Helper: parse tags JSON string from DB
+  const parseTags = (raw: string | null | undefined): string[] => {
+    try { return JSON.parse(raw ?? "[]") as string[]; } catch { return []; }
+  };
+
+  // Collect all unique tags from all docs for the tag filter row
+  const allDocTags = Array.from(new Set((docsQuery.data ?? []).flatMap(d => parseTags(d.tags))));
+
   const filteredDocs = storageFilter === "all" || storageFilter === "planning" || storageFilter === "creative" || storageFilter === "reference" || storageFilter === "notes"
     ? (docsQuery.data ?? []).filter(d => {
         const matchesFilter = storageFilter === "all" || d.category === storageFilter;
         const matchesSearch = !searchLower || d.title.toLowerCase().includes(searchLower) || d.slug.toLowerCase().includes(searchLower);
-        return matchesFilter && matchesSearch;
+        const docTags = parseTags(d.tags);
+        const matchesTag = !activeTagFilter || docTags.includes(activeTagFilter);
+        return matchesFilter && matchesSearch && matchesTag;
       })
     : [];
   const filteredFiles = storageFilter === "all" || storageFilter === "images" || storageFilter === "files"
@@ -786,7 +806,7 @@ export default function Admin() {
                   <p className="text-muted-foreground mt-1">Your planning docs, concept files, images, and uploads. Private — only you can see these.</p>
                 </div>
                 <div className="flex gap-2 flex-shrink-0">
-                  <Button size="sm" variant="outline" className="gap-2" onClick={() => { setShowNewDoc(true); setEditingDoc(null); setViewingDoc(null); setDocForm({ title: "", slug: "", content: "", category: "general" }); }}>
+                  <Button size="sm" variant="outline" className="gap-2" onClick={() => { setShowNewDoc(true); setEditingDoc(null); setViewingDoc(null); setDocForm({ title: "", slug: "", content: "", category: "general", tags: [] }); }}>
                     <Plus className="w-4 h-4" /> New Text Doc
                   </Button>
                   <Button size="sm" className="gap-2" onClick={() => docFileInputRef.current?.click()}>
@@ -824,6 +844,34 @@ export default function Admin() {
                   </button>
                 ))}
               </div>
+
+              {/* Tag filter pills (only shown when there are tags) */}
+              {allDocTags.length > 0 && (
+                <div className="flex flex-wrap gap-2 items-center">
+                  <span className="text-xs text-muted-foreground flex items-center gap-1"><Tag className="w-3 h-3" /> Tags:</span>
+                  {activeTagFilter && (
+                    <button
+                      onClick={() => setActiveTagFilter(null)}
+                      className="px-2 py-0.5 rounded-full text-xs font-medium bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 flex items-center gap-1"
+                    >
+                      <X className="w-2.5 h-2.5" /> Clear
+                    </button>
+                  )}
+                  {allDocTags.map((tag) => (
+                    <button
+                      key={tag}
+                      onClick={() => setActiveTagFilter(activeTagFilter === tag ? null : tag)}
+                      className={`px-2.5 py-0.5 rounded-full text-xs font-medium transition-colors ${
+                        activeTagFilter === tag
+                          ? "bg-cyan-500 text-black"
+                          : "bg-zinc-800 text-zinc-300 hover:bg-zinc-700 hover:text-white"
+                      }`}
+                    >
+                      #{tag}
+                    </button>
+                  ))}
+                </div>
+              )}
 
               {/* Search bar */}
               <div className="relative">
@@ -927,22 +975,68 @@ export default function Admin() {
                   {docsQuery.isLoading && <p className="text-muted-foreground text-sm">Loading documents...</p>}
                   {!viewingDoc && !editingDoc && (
                     <div className="space-y-2">
-                      {filteredDocs.map((doc) => (
-                        <Card key={doc.slug} className="border-border hover:border-primary/40 transition-colors cursor-pointer" onClick={() => setViewingDoc(doc.slug)}>
+                      {filteredDocs.map((doc) => {
+                        const docTags = parseTags(doc.tags);
+                        const tagInput = tagInputs[doc.slug] ?? "";
+                        return (
+                        <Card key={doc.slug} className="border-border hover:border-primary/40 transition-colors">
                           <CardContent className="p-4">
-                            <div className="flex items-center justify-between">
-                              <div className="flex-1 min-w-0 flex items-center gap-3">
-                                <FileText className="w-4 h-4 text-purple-400 flex-shrink-0" />
-                                <div>
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="flex-1 min-w-0 flex items-start gap-3 cursor-pointer" onClick={() => setPreviewDocSlug(doc.slug)}>
+                                <FileText className="w-4 h-4 text-purple-400 flex-shrink-0 mt-0.5" />
+                                <div className="min-w-0">
                                   <div className="flex items-center gap-2 mb-0.5">
                                     <p className="font-medium text-foreground text-sm">{doc.title}</p>
                                     <Badge variant="outline" className="text-xs">{doc.category}</Badge>
                                   </div>
                                   <p className="text-xs text-muted-foreground">Updated {new Date(doc.updatedAt).toLocaleDateString()}</p>
+                                  {/* Tag chips */}
+                                  {docTags.length > 0 && (
+                                    <div className="flex flex-wrap gap-1 mt-1.5" onClick={(e) => e.stopPropagation()}>
+                                      {docTags.map((tag) => (
+                                        <span key={tag} className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-xs bg-zinc-800 text-zinc-300 border border-zinc-700">
+                                          #{tag}
+                                          <button
+                                            className="ml-0.5 hover:text-red-400 transition-colors"
+                                            title={`Remove tag #${tag}`}
+                                            onClick={() => {
+                                              const newTags = docTags.filter(t => t !== tag);
+                                              upsertDoc.mutate({ title: doc.title, slug: doc.slug, content: doc.content, category: doc.category, tags: newTags });
+                                            }}
+                                          >
+                                            <X className="w-2.5 h-2.5" />
+                                          </button>
+                                        </span>
+                                      ))}
+                                    </div>
+                                  )}
+                                  {/* Tag input */}
+                                  <div className="flex items-center gap-1 mt-1.5" onClick={(e) => e.stopPropagation()}>
+                                    <input
+                                      type="text"
+                                      value={tagInput}
+                                      onChange={(e) => setTagInputs(prev => ({ ...prev, [doc.slug]: e.target.value }))}
+                                      onKeyDown={(e: KeyboardEvent<HTMLInputElement>) => {
+                                        if (e.key === "Enter" || e.key === ",") {
+                                          e.preventDefault();
+                                          const newTag = tagInput.trim().toLowerCase().replace(/[^a-z0-9-]/g, "");
+                                          if (newTag && !docTags.includes(newTag) && docTags.length < 20) {
+                                            upsertDoc.mutate({ title: doc.title, slug: doc.slug, content: doc.content, category: doc.category, tags: [...docTags, newTag] });
+                                            setTagInputs(prev => ({ ...prev, [doc.slug]: "" }));
+                                          }
+                                        }
+                                      }}
+                                      placeholder="Add tag, press Enter"
+                                      className="text-xs bg-zinc-900 border border-zinc-700 rounded px-2 py-0.5 text-zinc-300 placeholder:text-zinc-600 focus:outline-none focus:border-cyan-500 w-36"
+                                    />
+                                  </div>
                                 </div>
                               </div>
-                              <div className="flex gap-1 ml-4" onClick={(e) => e.stopPropagation()}>
-                                <Button size="sm" variant="ghost" title="Edit" onClick={() => { setEditingDoc(doc.slug); setViewingDoc(null); setDocForm({ title: doc.title, slug: doc.slug, content: doc.content, category: doc.category }); }}>
+                              <div className="flex gap-1 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                                <Button size="sm" variant="ghost" title="Preview" onClick={() => setPreviewDocSlug(doc.slug)}>
+                                  <Eye className="w-3 h-3" />
+                                </Button>
+                                <Button size="sm" variant="ghost" title="Edit" onClick={() => { setEditingDoc(doc.slug); setViewingDoc(null); setDocForm({ title: doc.title, slug: doc.slug, content: doc.content, category: doc.category, tags: parseTags(doc.tags) }); }}>
                                   <Pencil className="w-3 h-3" />
                                 </Button>
                                 <Button size="sm" variant="ghost" title="Download" onClick={() => {
@@ -961,7 +1055,8 @@ export default function Admin() {
                             </div>
                           </CardContent>
                         </Card>
-                      ))}
+                        );
+                      })}
                     </div>
                   )}
 
@@ -975,7 +1070,7 @@ export default function Admin() {
                             <Badge variant="outline" className="text-xs mt-1">{docDetailQuery.data.category}</Badge>
                           </div>
                           <div className="flex gap-2">
-                            <Button size="sm" variant="outline" className="gap-1" onClick={() => { setEditingDoc(viewingDoc); setViewingDoc(null); setDocForm({ title: docDetailQuery.data!.title, slug: docDetailQuery.data!.slug, content: docDetailQuery.data!.content, category: docDetailQuery.data!.category }); }}>
+                            <Button size="sm" variant="outline" className="gap-1" onClick={() => { setEditingDoc(viewingDoc); setViewingDoc(null); setDocForm({ title: docDetailQuery.data!.title, slug: docDetailQuery.data!.slug, content: docDetailQuery.data!.content, category: docDetailQuery.data!.category, tags: parseTags(docDetailQuery.data!.tags) }); }}>
                               <Pencil className="w-3 h-3" /> Edit
                             </Button>
                             <Button size="sm" variant="ghost" onClick={() => setViewingDoc(null)}><X className="w-4 h-4" /></Button>
@@ -1057,12 +1152,15 @@ export default function Admin() {
                               </div>
                             </div>
                             <div className="flex gap-1 flex-shrink-0">
-                              {file.mimetype.startsWith("image/") && (
-                                <a href={file.url} target="_blank" rel="noopener noreferrer">
-                                  <Button size="sm" variant="ghost" title="Preview">
-                                    <ExternalLink className="w-3 h-3" />
-                                  </Button>
-                                </a>
+                {file.mimetype.startsWith("image/") && (
+                                <Button size="sm" variant="ghost" title="Preview" onClick={() => setPreviewFile(file)}>
+                                  <Eye className="w-3 h-3" />
+                                </Button>
+                              )}
+                              {file.mimetype === "application/pdf" && (
+                                <Button size="sm" variant="ghost" title="Preview PDF" onClick={() => setPreviewFile(file)}>
+                                  <Eye className="w-3 h-3" />
+                                </Button>
                               )}
                               <Button size="sm" variant="ghost" title="Copy URL" onClick={() => {
                                 navigator.clipboard.writeText(file.url).catch(() => {/* ignore */});
@@ -1156,6 +1254,107 @@ export default function Admin() {
 
         </div>
       </main>
+
+      {/* ── PREVIEW MODAL — Uploaded File (image or PDF) */}
+      {previewFile && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
+          onClick={() => setPreviewFile(null)}
+        >
+          <div
+            className="relative max-w-5xl w-full mx-4 max-h-[90vh] flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between bg-zinc-900 border border-zinc-700 rounded-t-xl px-4 py-2">
+              <div className="flex items-center gap-2 min-w-0">
+                <FileIcon mimetype={previewFile.mimetype} />
+                <span className="text-sm font-medium text-foreground truncate">{previewFile.filename}</span>
+                <span className="text-xs text-muted-foreground ml-1">{formatBytes(previewFile.size)}</span>
+              </div>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <a href={previewFile.url} target="_blank" rel="noopener noreferrer">
+                  <Button size="sm" variant="ghost" className="gap-1 text-xs"><ExternalLink className="w-3 h-3" /> Open</Button>
+                </a>
+                <Button size="sm" variant="ghost" onClick={() => setPreviewFile(null)}><X className="w-4 h-4" /></Button>
+              </div>
+            </div>
+            {/* Body */}
+            <div className="bg-zinc-950 border-x border-b border-zinc-700 rounded-b-xl overflow-hidden flex-1 min-h-0">
+              {previewFile.mimetype.startsWith("image/") ? (
+                <div className="flex items-center justify-center p-4 max-h-[80vh] overflow-auto">
+                  <img
+                    src={previewFile.url}
+                    alt={previewFile.filename}
+                    className="max-w-full max-h-[75vh] object-contain rounded-lg"
+                  />
+                </div>
+              ) : previewFile.mimetype === "application/pdf" ? (
+                <iframe
+                  src={previewFile.url}
+                  title={previewFile.filename}
+                  className="w-full h-[80vh]"
+                  style={{ border: "none" }}
+                />
+              ) : (
+                <div className="p-6 text-muted-foreground text-sm">
+                  <p>Preview not available for this file type.</p>
+                  <a href={previewFile.url} target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:underline mt-2 inline-block">Open file in new tab</a>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── PREVIEW MODAL — Text Document (HTML rich text) */}
+      {previewDocSlug && (() => {
+        const doc = docsQuery.data?.find(d => d.slug === previewDocSlug);
+        if (!doc) return null;
+        const docTags = parseTags(doc.tags);
+        return (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
+            onClick={() => setPreviewDocSlug(null)}
+          >
+            <div
+              className="relative max-w-3xl w-full mx-4 max-h-[90vh] flex flex-col"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between bg-zinc-900 border border-zinc-700 rounded-t-xl px-4 py-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <FileText className="w-4 h-4 text-purple-400 flex-shrink-0" />
+                  <span className="text-sm font-medium text-foreground truncate">{doc.title}</span>
+                  <Badge variant="outline" className="text-xs ml-1">{doc.category}</Badge>
+                </div>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <Button size="sm" variant="ghost" className="gap-1 text-xs" onClick={() => { setPreviewDocSlug(null); setEditingDoc(doc.slug); setViewingDoc(null); setDocForm({ title: doc.title, slug: doc.slug, content: doc.content, category: doc.category, tags: parseTags(doc.tags) }); }}>
+                    <Pencil className="w-3 h-3" /> Edit
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={() => setPreviewDocSlug(null)}><X className="w-4 h-4" /></Button>
+                </div>
+              </div>
+              {/* Tags row */}
+              {docTags.length > 0 && (
+                <div className="flex flex-wrap gap-1 px-4 py-2 bg-zinc-900/80 border-x border-zinc-700">
+                  {docTags.map(tag => (
+                    <span key={tag} className="px-1.5 py-0.5 rounded-full text-xs bg-zinc-800 text-zinc-300 border border-zinc-700">#{tag}</span>
+                  ))}
+                </div>
+              )}
+              {/* Body */}
+              <div className="bg-zinc-950 border-x border-b border-zinc-700 rounded-b-xl overflow-y-auto max-h-[75vh]">
+                <div
+                  className="prose prose-invert prose-sm max-w-none p-6"
+                  dangerouslySetInnerHTML={{ __html: doc.content }}
+                />
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
     </div>
   );
 }

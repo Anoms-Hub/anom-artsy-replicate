@@ -224,3 +224,11 @@
 - [x] Admin: Tiptap rich text editor (RichTextEditor component) for creating/editing text documents
 - [x] Admin: search bar in Documents & Storage — filters docs and files by name in real time
 - [x] Create sanctuary-admin-panel skill (documents full admin panel architecture and patterns)
+
+## Admin Documents & Storage — Tags & Preview (Jul 12 2026)
+- [x] Admin: multi-tag system on text docs and uploaded files (tags stored in DB/localStorage)
+- [x] Admin: tag filter pills in Documents & Storage (click to filter by tag)
+- [x] Admin: tag management UI — add/remove tags from any doc or file inline (chip-style, X to remove, Enter to add)
+- [x] Admin: preview modal for images (lightbox with zoom)
+- [x] Admin: preview modal for text/HTML documents (rendered view with prose styling)
+- [x] Admin: preview modal for PDFs (iframe embed)
