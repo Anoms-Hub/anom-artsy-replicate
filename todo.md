@@ -208,3 +208,9 @@
 - [x] Register /admin route in App.tsx
 - [x] Upload sanctuary-master-plan.md and sanctuary-spark-concept.md to admin Documents
 - [x] Wire Admin link into profile dropdown nav (DashboardLayout sidebar footer) and Home.tsx header (admin-only, cyan neon style)
+
+## Admin Panel Enhancements (Jul 12 2026)
+- [x] Admin: Documents & Storage tab — file upload (S3), document list with category filter, download, delete, copy URL
+- [x] Admin: Help & Navigation tab — step-by-step clickable guide for every admin task with anchor links
+- [ ] Admin Storage: move uploaded file metadata from localStorage to DB (add admin_files table)
+- [ ] Admin Storage: add server-side delete endpoint that removes file from S3 storage

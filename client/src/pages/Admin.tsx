@@ -13,9 +13,7 @@ import { toast } from "sonner";
 import {
   LayoutDashboard,
   FileText,
-  Image,
-  BookOpen,
-  Settings,
+  HelpCircle,
   Edit3,
   Save,
   Trash2,
@@ -33,197 +31,262 @@ import {
   Gamepad2,
   ShoppingBag,
   Users,
+  Settings,
+  Copy,
+  FolderOpen,
+  Image,
+  File,
+  Link,
 } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-type Tab = "overview" | "content" | "documents" | "assets" | "guide";
+type Tab = "overview" | "content" | "storage" | "help";
 
-// ─── How-To Guide Content ─────────────────────────────────────────────────────
-const GUIDE_SECTIONS = [
+interface StoredFile {
+  url: string;
+  key: string;
+  filename: string;
+  mimetype: string;
+  size: number;
+  uploadedAt: number;
+  category: string;
+}
+
+// ─── Help & Navigation Content ────────────────────────────────────────────────
+const HELP_SECTIONS = [
   {
-    id: "welcome",
-    title: "Welcome to Your Admin Panel",
+    id: "getting-here",
+    title: "How to Get to the Admin Panel",
     icon: "🏠",
+    anchor: "getting-here",
     steps: [
       {
         step: 1,
-        title: "How to get here",
-        body: "You are already here! To get back to this page any time, go to your site and click your profile picture in the top-right corner. You will see an 'Admin' option in the menu. Click it and you will land right here.",
+        title: "From anywhere on the site",
+        body: "Click your profile picture or name in the top-right corner of any page. A dropdown menu will appear. Click 'Admin Panel' — it's highlighted in cyan so it's easy to spot.",
+        link: null,
       },
       {
         step: 2,
-        title: "What you can do here",
-        body: "This admin panel is your control center. You can edit text on any page of the site, store your planning documents, manage uploaded images, and read step-by-step guides for everything. You never need to touch code.",
+        title: "Type it directly in your browser",
+        body: "Go to your browser's address bar (the box at the very top of the screen where you type web addresses). Type: anomarsty.lol/admin and press Enter. You'll land right here.",
+        link: "https://anomarsty.lol/admin",
       },
       {
         step: 3,
-        title: "The sidebar on the left",
-        body: "The sidebar has five sections: Overview (this page), Content Editor (edit site text), Documents (your planning docs), Assets (your images), and How-To Guide (the guide you are reading now). Click any section name to go there.",
-      },
-    ],
-  },
-  {
-    id: "content",
-    title: "How to Edit Text on the Site",
-    icon: "✏️",
-    steps: [
-      {
-        step: 1,
-        title: "Go to Content Editor",
-        body: "Click 'Content Editor' in the sidebar on the left. You will see a list of every piece of text on the site that you are allowed to edit — things like page descriptions, section headings, and welcome messages.",
-      },
-      {
-        step: 2,
-        title: "Find the text you want to change",
-        body: "Each row shows you the page it lives on (like 'Universe Map' or 'Landing Page'), a label that describes what it is (like 'AO Universe Description'), and the current text. Scroll through the list to find what you want.",
-      },
-      {
-        step: 3,
-        title: "Click Edit",
-        body: "Click the pencil icon (✏️) on the right side of any row. The text will turn into a text box you can type in. Make your changes — you can type as much or as little as you want.",
-      },
-      {
-        step: 4,
-        title: "Save your changes",
-        body: "When you are done typing, click the green 'Save' button. Your change goes live on the site immediately — no waiting, no publishing step needed. If you change your mind, click the grey 'Cancel' button instead.",
-      },
-      {
-        step: 5,
-        title: "See it on the site",
-        body: "Open a new browser tab and go to anomarsty.lol. Navigate to the page you just edited. Your new text will be showing. If you do not see it right away, try refreshing the page (press F5 or Ctrl+R on Windows, Cmd+R on Mac).",
-      },
-    ],
-  },
-  {
-    id: "documents",
-    title: "How to Use Your Documents",
-    icon: "📄",
-    steps: [
-      {
-        step: 1,
-        title: "Go to Documents",
-        body: "Click 'Documents' in the sidebar. This is where all your planning documents live — the Master Plan, the Spark Concept doc, the Lounge Plan, and anything else you save here.",
-      },
-      {
-        step: 2,
-        title: "Read a document",
-        body: "Click on any document title to open it. It will show the full text right here in the panel. You can scroll through it, read it, and copy text from it.",
-      },
-      {
-        step: 3,
-        title: "Edit a document",
-        body: "Click the pencil icon (✏️) next to any document. The text will open in an editor. Make your changes — you can add new sections, update dates, fill in the blank fields (like the Open Decisions table), or change anything you want.",
-      },
-      {
-        step: 4,
-        title: "Save a document",
-        body: "Click the green 'Save' button when you are done. The document is saved instantly. It stays here in your admin panel — it does not appear on the public site.",
-      },
-      {
-        step: 5,
-        title: "Create a new document",
-        body: "Click the '+ New Document' button at the top of the Documents tab. Give it a title, choose a category (Planning, Creative, Reference, or Notes), and start typing. Click Save when done.",
-      },
-      {
-        step: 6,
-        title: "Download a document",
-        body: "Click the download icon (⬇️) next to any document to save it to your computer as a text file. This is useful for sharing with collaborators or keeping a backup.",
-      },
-    ],
-  },
-  {
-    id: "assets",
-    title: "How to Manage Your Images",
-    icon: "🖼️",
-    steps: [
-      {
-        step: 1,
-        title: "Go to Assets",
-        body: "Click 'Assets' in the sidebar. This shows all the images you have uploaded to the site — logos, creature concept art, lounge backgrounds, and anything else.",
-      },
-      {
-        step: 2,
-        title: "Upload a new image",
-        body: "Click the '+ Upload Image' button. A file picker will open. Choose an image from your computer (JPG, PNG, GIF, or WebP). The image will upload and appear in your asset library.",
-      },
-      {
-        step: 3,
-        title: "Copy an image URL",
-        body: "Every image has a 'Copy URL' button. Click it to copy the web address of that image. You can then paste this URL into the Content Editor when editing a page, or give it to Manus to use in a new feature.",
-      },
-      {
-        step: 4,
-        title: "Delete an image",
-        body: "Click the trash icon (🗑️) next to any image to delete it. Be careful — if the image is being used on the site, deleting it will cause a broken image to appear on that page.",
+        title: "From the Dashboard sidebar",
+        body: "If you're in the Dashboard, look at the left sidebar. Click your name or profile picture at the very bottom. A menu pops up — click 'Admin Panel' at the top of that menu.",
+        link: null,
       },
     ],
   },
   {
     id: "navigation",
-    title: "How to Navigate the Site as Admin",
+    title: "How to Navigate the Site",
     icon: "🗺️",
+    anchor: "navigation",
     steps: [
       {
         step: 1,
-        title: "Your site address",
-        body: "Your site lives at two addresses: anomarsty.lol and anomartsy.xyz. Both go to the same place. You can use either one.",
+        title: "The top navigation bar",
+        body: "Every page has a row of links at the top: Home, Universe Map, Games, Financial District, Anom's Corner, and more. Click any of them to jump to that section.",
+        link: null,
       },
       {
         step: 2,
-        title: "The main navigation bar",
-        body: "At the top of every page on your site, there is a navigation bar. It has links to the main sections: Home, Universe Map, Games, Financial District, Anom's Corner, and more. Click any of these to go to that section.",
+        title: "Quick links from this panel",
+        body: "In the Overview tab (click 'Overview' in the left sidebar), there are big buttons for every major page. Click any button to open that page in a new tab.",
+        link: null,
       },
       {
         step: 3,
-        title: "Your profile menu",
-        body: "In the top-right corner of every page, you will see your profile picture (or a placeholder if you have not set one yet). Click it to open a dropdown menu with links to: Your Profile, Settings, Admin Panel, and Log Out.",
+        title: "The back button",
+        body: "On most pages, there is a back arrow (←) in the top-left corner. Click it to go back. You can also use your browser's back button — the ← arrow at the very top-left of your browser window.",
+        link: null,
       },
       {
         step: 4,
-        title: "Quick links from this panel",
-        body: "In the Overview tab of this admin panel, there are quick-link buttons to every major page on the site. Click any of them to jump directly to that page in a new tab.",
+        title: "All the pages and their addresses",
+        body: "Home: anomarsty.lol/ · Universe Map: /universe-map · Games: /games · Financial District: /financial-district · Anom's Corner: /anoms-corner · Settings: /settings · Admin: /admin",
+        link: null,
+      },
+    ],
+  },
+  {
+    id: "edit-text",
+    title: "How to Edit Text on the Site",
+    icon: "✏️",
+    anchor: "edit-text",
+    steps: [
+      {
+        step: 1,
+        title: "Go to Content Editor",
+        body: "Click 'Content Editor' in the left sidebar. You'll see a list of every piece of text you're allowed to edit — page descriptions, headings, welcome messages, and more.",
+        link: null,
+      },
+      {
+        step: 2,
+        title: "Find the text you want to change",
+        body: "Each row shows the page it's on (like 'Universe Map'), a label describing what it is (like 'AO Universe Description'), and the current text. Scroll to find what you want.",
+        link: null,
+      },
+      {
+        step: 3,
+        title: "Click the pencil icon to edit",
+        body: "Click the pencil icon (✏️) on the right side of any row. The text turns into a box you can type in. Make your changes.",
+        link: null,
+      },
+      {
+        step: 4,
+        title: "Save your changes",
+        body: "Click the green Save button. Your change goes live on the site immediately — no extra steps needed. Click Cancel if you change your mind.",
+        link: null,
       },
       {
         step: 5,
-        title: "The back button",
-        body: "On most pages, there is a back arrow (←) in the top-left corner. Click it to go back to where you came from. You can also use your browser's back button (the ← arrow in the browser toolbar at the very top of your screen).",
+        title: "Check it on the site",
+        body: "Open a new browser tab and go to the page you edited. Your new text will be there. If you don't see it, press Ctrl+R (Windows) or Cmd+R (Mac) to refresh.",
+        link: null,
+      },
+    ],
+  },
+  {
+    id: "documents",
+    title: "How to Use Documents & Storage",
+    icon: "📁",
+    anchor: "documents",
+    steps: [
+      {
+        step: 1,
+        title: "Go to Documents & Storage",
+        body: "Click 'Documents & Storage' in the left sidebar. This is where all your planning documents, concept files, images, and uploaded files live.",
+        link: null,
+      },
+      {
+        step: 2,
+        title: "Upload a file",
+        body: "Click the '+ Upload File' button at the top. A file picker opens. Choose any file from your computer — images (JPG, PNG, GIF), documents (PDF, TXT, DOC), or text files. Files up to 25MB are supported.",
+        link: null,
+      },
+      {
+        step: 3,
+        title: "Copy a file's URL",
+        body: "Every uploaded file has a 'Copy URL' button (the chain-link icon). Click it to copy the web address of that file. Paste it anywhere — in the Content Editor, in a message to Manus, or in your notes.",
+        link: null,
+      },
+      {
+        step: 4,
+        title: "Create a text document",
+        body: "Click '+ New Text Doc'. Give it a title and category, then type or paste your content. Good for notes, plans, schedules, and anything you want to keep private in your admin panel.",
+        link: null,
+      },
+      {
+        step: 5,
+        title: "Download a document",
+        body: "Click the download icon (⬇️) next to any document to save it to your computer as a text file. Useful for sharing or keeping a backup.",
+        link: null,
       },
       {
         step: 6,
-        title: "Getting back to the admin panel",
-        body: "From anywhere on the site: click your profile picture in the top-right → click 'Admin' in the dropdown. Or type /admin at the end of your site address in the browser bar (e.g. anomarsty.lol/admin).",
+        title: "Filter by category",
+        body: "Use the category filter buttons at the top (All, Planning, Creative, Reference, Notes, Images, Files) to quickly find what you're looking for.",
+        link: null,
+      },
+      {
+        step: 7,
+        title: "Delete a file or document",
+        body: "Click the trash icon (🗑️) next to any item to delete it. For uploaded files, the file is removed from storage. Be careful — this cannot be undone.",
+        link: null,
       },
     ],
   },
   {
     id: "settings",
-    title: "How to Change Site Settings",
+    title: "How to Change Your Settings",
     icon: "⚙️",
+    anchor: "settings",
     steps: [
       {
         step: 1,
-        title: "Your personal settings",
-        body: "Go to anomarsty.lol/settings (or click your profile picture → Settings). Here you can change your profile photo, bio, username, being type, background theme, and font. These are your personal settings — they only affect your profile.",
+        title: "Go to Settings",
+        body: "Click your profile picture → Settings, or go to anomarsty.lol/settings. This is your personal settings page — changes here only affect your own profile.",
+        link: "https://anomarsty.lol/settings",
       },
       {
         step: 2,
-        title: "Changing your profile photo",
-        body: "In Settings, look for the 'Profile Photo' section. Click 'Upload Photo' to choose an image from your computer. The photo will upload and appear on your profile right away.",
+        title: "Change your profile photo",
+        body: "In Settings, find the Profile Photo section. Click 'Upload Photo' to choose an image from your computer. It uploads and shows on your profile right away.",
+        link: null,
       },
       {
         step: 3,
-        title: "Changing your bio",
-        body: "In Settings, find the 'About You' section. Click in the text box and type your bio. You can write up to 280 characters. Click 'Save Changes' when done.",
+        title: "Change your bio",
+        body: "Find the 'About You' section. Click in the text box and type your bio (up to 280 characters). Click Save Changes when done.",
+        link: null,
       },
       {
         step: 4,
-        title: "Changing the site font",
-        body: "In Settings, scroll down to the 'Font' section. You will see six font options — click any one to preview it. The whole site will switch to that font instantly. Click 'Save Changes' to keep it.",
+        title: "Change the site font",
+        body: "Scroll to the Font section. Click any font option to preview it — the whole site switches instantly. Click Save Changes to keep it.",
+        link: null,
       },
       {
         step: 5,
-        title: "Changing your theme",
-        body: "In Settings, find the 'Theme' section. Click any theme card to switch to it. Themes change the colors of the site. Some themes cost coins to unlock — you will see a coin price on those.",
+        title: "Change your theme",
+        body: "Find the Theme section. Click any theme card to switch colors. Some themes cost coins — you'll see the price on those cards.",
+        link: null,
+      },
+    ],
+  },
+  {
+    id: "shop",
+    title: "How to Manage the Shop",
+    icon: "🛍️",
+    anchor: "shop",
+    steps: [
+      {
+        step: 1,
+        title: "Go to Shop Manager",
+        body: "In the Dashboard, click the hamburger menu (☰) in the top-left. Click 'Shop Manager'. This is where you create and manage items members can buy with coins or real money.",
+        link: null,
+      },
+      {
+        step: 2,
+        title: "Create a new shop item",
+        body: "Click '+ New Item'. Fill in the name, description, price (in coins), category (theme, badge, decoration, etc.), and a preview image URL. Toggle it to 'Active' when you're ready for members to see it.",
+        link: null,
+      },
+      {
+        step: 3,
+        title: "Edit or remove an item",
+        body: "Click the pencil icon on any item to edit it. Click the trash icon to delete it. Toggling an item to 'Inactive' hides it from members without deleting it.",
+        link: null,
+      },
+    ],
+  },
+  {
+    id: "missions",
+    title: "How to Manage Missions",
+    icon: "🎯",
+    anchor: "missions",
+    steps: [
+      {
+        step: 1,
+        title: "What missions are",
+        body: "Missions are tasks members complete to earn coins and Social Good Score. They guide new members through the platform and reward good behavior.",
+        link: null,
+      },
+      {
+        step: 2,
+        title: "View active missions",
+        body: "Go to anomarsty.lol/dashboard and click the Missions tab. You'll see all current missions exactly as members see them.",
+        link: "https://anomarsty.lol/dashboard",
+      },
+      {
+        step: 3,
+        title: "To add or change missions",
+        body: "Tell Manus what you want — new mission name, description, coin reward, and what action it requires. Manus will add it to the database and wire it to the right page.",
+        link: null,
       },
     ],
   },
@@ -231,21 +294,24 @@ const GUIDE_SECTIONS = [
 
 // ─── Sub-components ────────────────────────────────────────────────────────────
 
-function GuideSection({ section }: { section: typeof GUIDE_SECTIONS[0] }) {
-  const [open, setOpen] = useState(false);
+function HelpSection({ section, isOpen, onToggle }: {
+  section: typeof HELP_SECTIONS[0];
+  isOpen: boolean;
+  onToggle: () => void;
+}) {
   return (
-    <div className="border border-border rounded-lg overflow-hidden mb-3">
+    <div id={section.anchor} className="border border-border rounded-lg overflow-hidden mb-3 scroll-mt-4">
       <button
         className="w-full flex items-center justify-between p-4 text-left hover:bg-muted/50 transition-colors"
-        onClick={() => setOpen(!open)}
+        onClick={onToggle}
       >
         <div className="flex items-center gap-3">
           <span className="text-2xl">{section.icon}</span>
           <span className="font-semibold text-foreground">{section.title}</span>
         </div>
-        <ChevronRight className={`w-4 h-4 text-muted-foreground transition-transform ${open ? "rotate-90" : ""}`} />
+        <ChevronRight className={`w-4 h-4 text-muted-foreground transition-transform ${isOpen ? "rotate-90" : ""}`} />
       </button>
-      {open && (
+      {isOpen && (
         <div className="border-t border-border bg-muted/20 p-4 space-y-4">
           {section.steps.map((s) => (
             <div key={s.step} className="flex gap-4">
@@ -255,6 +321,16 @@ function GuideSection({ section }: { section: typeof GUIDE_SECTIONS[0] }) {
               <div>
                 <p className="font-semibold text-foreground mb-1">{s.title}</p>
                 <p className="text-sm text-muted-foreground leading-relaxed">{s.body}</p>
+                {s.link && (
+                  <a
+                    href={s.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-xs text-primary hover:underline mt-1"
+                  >
+                    <Link className="w-3 h-3" /> {s.link}
+                  </a>
+                )}
               </div>
             </div>
           ))}
@@ -264,11 +340,24 @@ function GuideSection({ section }: { section: typeof GUIDE_SECTIONS[0] }) {
   );
 }
 
+function FileIcon({ mimetype }: { mimetype: string }) {
+  if (mimetype.startsWith("image/")) return <Image className="w-4 h-4 text-blue-400" />;
+  if (mimetype === "application/pdf") return <File className="w-4 h-4 text-red-400" />;
+  return <FileText className="w-4 h-4 text-muted-foreground" />;
+}
+
+function formatBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
 // ─── Main Admin Page ───────────────────────────────────────────────────────────
 export default function Admin() {
   const { user, isAuthenticated, loading } = useAuth();
   const [, navigate] = useLocation();
   const [activeTab, setActiveTab] = useState<Tab>("overview");
+
   // Content editor state
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
@@ -278,9 +367,22 @@ export default function Admin() {
   const [editingDoc, setEditingDoc] = useState<string | null>(null);
   const [docForm, setDocForm] = useState({ title: "", slug: "", content: "", category: "general" });
   const [showNewDoc, setShowNewDoc] = useState(false);
+  const [storageFilter, setStorageFilter] = useState("all");
 
-  // Assets state
+  // Uploaded files state (stored in localStorage for session persistence)
+  const [uploadedFiles, setUploadedFiles] = useState<StoredFile[]>(() => {
+    try {
+      const saved = localStorage.getItem("admin-uploaded-files");
+      return saved ? JSON.parse(saved) as StoredFile[] : [];
+    } catch { return []; }
+  });
+
+  // Help section open state
+  const [openHelpSection, setOpenHelpSection] = useState<string | null>("getting-here");
+
+  // File upload refs
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const docFileInputRef = useRef<HTMLInputElement>(null);
 
   // tRPC queries
   const contentQuery = trpc.admin.content.getAll.useQuery(undefined, { enabled: isAuthenticated && user?.role === "admin" });
@@ -317,6 +419,40 @@ export default function Admin() {
     },
   });
 
+  // Persist uploaded files to localStorage
+  const saveUploadedFiles = (files: StoredFile[]) => {
+    setUploadedFiles(files);
+    try { localStorage.setItem("admin-uploaded-files", JSON.stringify(files)); } catch { /* ignore */ }
+  };
+
+  const handleFileUpload = async (file: File, category: string) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    try {
+      const res = await fetch("/api/upload/admin-doc", { method: "POST", body: formData, credentials: "include" });
+      const data = await res.json() as { url?: string; key?: string; filename?: string; mimetype?: string; size?: number; error?: string };
+      if (data.url && data.key) {
+        const newFile: StoredFile = {
+          url: data.url,
+          key: data.key,
+          filename: data.filename ?? file.name,
+          mimetype: data.mimetype ?? file.type,
+          size: data.size ?? file.size,
+          uploadedAt: Date.now(),
+          category,
+        };
+        const updated = [newFile, ...uploadedFiles];
+        saveUploadedFiles(updated);
+        toast.success("File uploaded!", { description: "URL copied to clipboard." });
+        navigator.clipboard.writeText(data.url).catch(() => {/* ignore */});
+      } else {
+        toast.error(data.error ?? "Upload failed");
+      }
+    } catch {
+      toast.error("Upload failed — network error");
+    }
+  };
+
   // Auth guard
   if (loading) {
     return (
@@ -347,9 +483,8 @@ export default function Admin() {
   const navItems: { id: Tab; label: string; icon: React.ReactNode; badge?: string }[] = [
     { id: "overview", label: "Overview", icon: <LayoutDashboard className="w-4 h-4" /> },
     { id: "content", label: "Content Editor", icon: <Edit3 className="w-4 h-4" />, badge: contentQuery.data?.length?.toString() },
-    { id: "documents", label: "Documents", icon: <FileText className="w-4 h-4" />, badge: docsQuery.data?.length?.toString() },
-    { id: "assets", label: "Assets", icon: <Image className="w-4 h-4" /> },
-    { id: "guide", label: "How-To Guide", icon: <BookOpen className="w-4 h-4" /> },
+    { id: "storage", label: "Documents & Storage", icon: <FolderOpen className="w-4 h-4" />, badge: ((docsQuery.data?.length ?? 0) + uploadedFiles.length).toString() },
+    { id: "help", label: "Help & Navigation", icon: <HelpCircle className="w-4 h-4" /> },
   ];
 
   // ── Quick links for Overview
@@ -362,10 +497,23 @@ export default function Admin() {
     { label: "Settings", href: "/settings", icon: <Settings className="w-4 h-4" /> },
   ];
 
+  // ── Storage filter categories
+  const filterCategories = ["all", "planning", "creative", "reference", "notes", "images", "files"];
+  const filteredDocs = storageFilter === "all" || storageFilter === "planning" || storageFilter === "creative" || storageFilter === "reference" || storageFilter === "notes"
+    ? (docsQuery.data ?? []).filter(d => storageFilter === "all" || d.category === storageFilter)
+    : [];
+  const filteredFiles = storageFilter === "all" || storageFilter === "images" || storageFilter === "files"
+    ? uploadedFiles.filter(f => {
+        if (storageFilter === "images") return f.mimetype.startsWith("image/");
+        if (storageFilter === "files") return !f.mimetype.startsWith("image/");
+        return true;
+      })
+    : [];
+
   return (
     <div className="min-h-screen bg-background flex">
       {/* ── Sidebar */}
-      <aside className="w-56 flex-shrink-0 border-r border-border bg-card flex flex-col">
+      <aside className="w-60 flex-shrink-0 border-r border-border bg-card flex flex-col">
         <div className="p-4 border-b border-border">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
@@ -392,7 +540,7 @@ export default function Admin() {
                 {item.icon}
                 {item.label}
               </span>
-              {item.badge && (
+              {item.badge && item.badge !== "0" && (
                 <Badge variant="secondary" className="text-xs h-5 px-1.5">
                   {item.badge}
                 </Badge>
@@ -400,6 +548,28 @@ export default function Admin() {
             </button>
           ))}
         </nav>
+
+        {/* Help quick-jump links */}
+        {activeTab === "help" && (
+          <div className="p-3 border-t border-border space-y-1">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 mb-2">Jump to</p>
+            {HELP_SECTIONS.map((s) => (
+              <button
+                key={s.anchor}
+                onClick={() => {
+                  setOpenHelpSection(s.id);
+                  setTimeout(() => {
+                    document.getElementById(s.anchor)?.scrollIntoView({ behavior: "smooth", block: "start" });
+                  }, 50);
+                }}
+                className="w-full text-left px-2 py-1.5 rounded text-xs text-muted-foreground hover:text-foreground hover:bg-muted transition-colors flex items-center gap-2"
+              >
+                <span>{s.icon}</span> {s.title.replace("How to ", "")}
+              </button>
+            ))}
+          </div>
+        )}
+
         <div className="p-3 border-t border-border">
           <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-muted-foreground" onClick={() => navigate("/")}>
             <Home className="w-4 h-4" /> Back to Site
@@ -424,7 +594,7 @@ export default function Admin() {
                 {[
                   { label: "Editable Blocks", value: contentQuery.data?.length ?? "—", color: "text-cyan-400" },
                   { label: "Documents", value: docsQuery.data?.length ?? "—", color: "text-purple-400" },
-                  { label: "Guide Sections", value: GUIDE_SECTIONS.length, color: "text-green-400" },
+                  { label: "Uploaded Files", value: uploadedFiles.length, color: "text-blue-400" },
                   { label: "Your Role", value: "Admin", color: "text-yellow-400" },
                 ].map((card) => (
                   <Card key={card.label} className="border-border">
@@ -468,7 +638,7 @@ export default function Admin() {
                     { done: true, task: "Site is live at anomarsty.lol" },
                     { done: true, task: "Giphy GIF picker is active in profile editor" },
                     { done: true, task: "SEO meta tags added to home page" },
-                    { done: false, task: "Confirm Spark vessel name (see Documents → Spark Concept)" },
+                    { done: false, task: "Confirm Spark vessel name (see Documents & Storage → Spark Concept)" },
                     { done: false, task: "Fill in Open Decisions table in Master Plan" },
                     { done: false, task: "Set up Stripe for premium purchases" },
                     { done: false, task: "Generate concept art for Lumifox and Glow Pod" },
@@ -577,24 +747,59 @@ export default function Admin() {
             </div>
           )}
 
-          {/* ── DOCUMENTS TAB */}
-          {activeTab === "documents" && (
+          {/* ── DOCUMENTS & STORAGE TAB */}
+          {activeTab === "storage" && (
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
+              <div className="flex items-start justify-between gap-4">
                 <div>
-                  <h1 className="text-2xl font-bold text-foreground">Documents</h1>
-                  <p className="text-muted-foreground mt-1">Your planning docs, concept notes, and guides. Private — only you can see these.</p>
+                  <h1 className="text-2xl font-bold text-foreground">Documents & Storage</h1>
+                  <p className="text-muted-foreground mt-1">Your planning docs, concept files, images, and uploads. Private — only you can see these.</p>
                 </div>
-                <Button size="sm" className="gap-2" onClick={() => { setShowNewDoc(true); setEditingDoc(null); setViewingDoc(null); setDocForm({ title: "", slug: "", content: "", category: "general" }); }}>
-                  <Plus className="w-4 h-4" /> New Document
-                </Button>
+                <div className="flex gap-2 flex-shrink-0">
+                  <Button size="sm" variant="outline" className="gap-2" onClick={() => { setShowNewDoc(true); setEditingDoc(null); setViewingDoc(null); setDocForm({ title: "", slug: "", content: "", category: "general" }); }}>
+                    <Plus className="w-4 h-4" /> New Text Doc
+                  </Button>
+                  <Button size="sm" className="gap-2" onClick={() => docFileInputRef.current?.click()}>
+                    <Upload className="w-4 h-4" /> Upload File
+                  </Button>
+                  <input
+                    ref={docFileInputRef}
+                    type="file"
+                    accept="image/*,.pdf,.txt,.md,.doc,.docx"
+                    className="hidden"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      const cat = file.type.startsWith("image/") ? "images" : "files";
+                      await handleFileUpload(file, cat);
+                      e.target.value = "";
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Category filter */}
+              <div className="flex flex-wrap gap-2">
+                {filterCategories.map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => setStorageFilter(cat)}
+                    className={`px-3 py-1 rounded-full text-xs font-medium transition-colors capitalize ${
+                      storageFilter === cat
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground"
+                    }`}
+                  >
+                    {cat === "all" ? "All" : cat}
+                  </button>
+                ))}
               </div>
 
               {/* New doc form */}
               {showNewDoc && (
                 <Card className="border-primary/50 bg-primary/5">
                   <CardHeader className="pb-3">
-                    <CardTitle className="text-base">Create New Document</CardTitle>
+                    <CardTitle className="text-base">Create New Text Document</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">
                     <div className="grid grid-cols-2 gap-3">
@@ -630,192 +835,232 @@ export default function Admin() {
                 </Card>
               )}
 
-              {docsQuery.isLoading && <p className="text-muted-foreground">Loading documents...</p>}
-              {docsQuery.data?.length === 0 && !showNewDoc && (
-                <Card className="border-border">
-                  <CardContent className="p-8 text-center text-muted-foreground">
-                    <FileText className="w-8 h-8 mx-auto mb-3 opacity-40" />
-                    <p className="font-medium">No documents yet.</p>
-                    <p className="text-sm mt-1">Click '+ New Document' to create your first one.</p>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Document list */}
-              {docsQuery.data && docsQuery.data.length > 0 && !viewingDoc && !editingDoc && (
-                <div className="space-y-2">
-                  {docsQuery.data.map((doc) => (
-                    <Card key={doc.slug} className="border-border hover:border-primary/40 transition-colors cursor-pointer" onClick={() => setViewingDoc(doc.slug)}>
-                      <CardContent className="p-4">
-                        <div className="flex items-center justify-between">
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1">
-                              <p className="font-medium text-foreground">{doc.title}</p>
-                              <Badge variant="outline" className="text-xs">{doc.category}</Badge>
+              {/* Text documents section */}
+              {(storageFilter === "all" || ["planning","creative","reference","notes","general"].includes(storageFilter)) && (
+                <div>
+                  {filteredDocs.length > 0 && (
+                    <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2">Text Documents</h2>
+                  )}
+                  {docsQuery.isLoading && <p className="text-muted-foreground text-sm">Loading documents...</p>}
+                  {!viewingDoc && !editingDoc && (
+                    <div className="space-y-2">
+                      {filteredDocs.map((doc) => (
+                        <Card key={doc.slug} className="border-border hover:border-primary/40 transition-colors cursor-pointer" onClick={() => setViewingDoc(doc.slug)}>
+                          <CardContent className="p-4">
+                            <div className="flex items-center justify-between">
+                              <div className="flex-1 min-w-0 flex items-center gap-3">
+                                <FileText className="w-4 h-4 text-purple-400 flex-shrink-0" />
+                                <div>
+                                  <div className="flex items-center gap-2 mb-0.5">
+                                    <p className="font-medium text-foreground text-sm">{doc.title}</p>
+                                    <Badge variant="outline" className="text-xs">{doc.category}</Badge>
+                                  </div>
+                                  <p className="text-xs text-muted-foreground">Updated {new Date(doc.updatedAt).toLocaleDateString()}</p>
+                                </div>
+                              </div>
+                              <div className="flex gap-1 ml-4" onClick={(e) => e.stopPropagation()}>
+                                <Button size="sm" variant="ghost" title="Edit" onClick={() => { setEditingDoc(doc.slug); setViewingDoc(null); setDocForm({ title: doc.title, slug: doc.slug, content: doc.content, category: doc.category }); }}>
+                                  <Pencil className="w-3 h-3" />
+                                </Button>
+                                <Button size="sm" variant="ghost" title="Download" onClick={() => {
+                                  const blob = new Blob([doc.content], { type: "text/plain" });
+                                  const a = document.createElement("a");
+                                  a.href = URL.createObjectURL(blob);
+                                  a.download = `${doc.slug}.txt`;
+                                  a.click();
+                                }}>
+                                  <Download className="w-3 h-3" />
+                                </Button>
+                                <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" title="Delete" onClick={() => { if (confirm(`Delete "${doc.title}"?`)) deleteDoc.mutate({ slug: doc.slug }); }}>
+                                  <Trash2 className="w-3 h-3" />
+                                </Button>
+                              </div>
                             </div>
-                            <p className="text-xs text-muted-foreground">
-                              Updated {new Date(doc.updatedAt).toLocaleDateString()}
-                            </p>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* View doc */}
+                  {viewingDoc && docDetailQuery.data && (
+                    <Card className="border-border">
+                      <CardHeader className="pb-3">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <CardTitle>{docDetailQuery.data.title}</CardTitle>
+                            <Badge variant="outline" className="text-xs mt-1">{docDetailQuery.data.category}</Badge>
                           </div>
-                          <div className="flex gap-1 ml-4" onClick={(e) => e.stopPropagation()}>
-                            <Button size="sm" variant="ghost" className="gap-1" onClick={() => {
-                              setEditingDoc(doc.slug);
-                              setViewingDoc(null);
-                              setDocForm({ title: doc.title, slug: doc.slug, content: doc.content, category: doc.category });
-                            }}>
-                              <Pencil className="w-3 h-3" />
+                          <div className="flex gap-2">
+                            <Button size="sm" variant="outline" className="gap-1" onClick={() => { setEditingDoc(viewingDoc); setViewingDoc(null); setDocForm({ title: docDetailQuery.data!.title, slug: docDetailQuery.data!.slug, content: docDetailQuery.data!.content, category: docDetailQuery.data!.category }); }}>
+                              <Pencil className="w-3 h-3" /> Edit
                             </Button>
-                            <Button size="sm" variant="ghost" onClick={() => {
-                              const blob = new Blob([doc.content], { type: "text/plain" });
-                              const a = document.createElement("a");
-                              a.href = URL.createObjectURL(blob);
-                              a.download = `${doc.slug}.txt`;
-                              a.click();
-                            }}>
-                              <Download className="w-3 h-3" />
-                            </Button>
-                            <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => {
-                              if (confirm(`Delete "${doc.title}"?`)) deleteDoc.mutate({ slug: doc.slug });
-                            }}>
-                              <Trash2 className="w-3 h-3" />
-                            </Button>
+                            <Button size="sm" variant="ghost" onClick={() => setViewingDoc(null)}><X className="w-4 h-4" /></Button>
                           </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <pre className="text-sm text-foreground whitespace-pre-wrap font-mono bg-muted/30 rounded-lg p-4 max-h-[600px] overflow-y-auto">
+                          {docDetailQuery.data.content}
+                        </pre>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {/* Edit doc */}
+                  {editingDoc && (
+                    <Card className="border-primary/50 bg-primary/5">
+                      <CardHeader className="pb-3">
+                        <div className="flex items-center justify-between">
+                          <CardTitle className="text-base">Editing: {docForm.title}</CardTitle>
+                          <Button size="sm" variant="ghost" onClick={() => setEditingDoc(null)}><X className="w-4 h-4" /></Button>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="space-y-1">
+                            <Label>Title</Label>
+                            <Input value={docForm.title} onChange={(e) => setDocForm({ ...docForm, title: e.target.value })} />
+                          </div>
+                          <div className="space-y-1">
+                            <Label>Category</Label>
+                            <Select value={docForm.category} onValueChange={(v) => setDocForm({ ...docForm, category: v })}>
+                              <SelectTrigger><SelectValue /></SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="general">General</SelectItem>
+                                <SelectItem value="planning">Planning</SelectItem>
+                                <SelectItem value="creative">Creative</SelectItem>
+                                <SelectItem value="reference">Reference</SelectItem>
+                                <SelectItem value="notes">Notes</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                        <div className="space-y-1">
+                          <Label>Content</Label>
+                          <Textarea value={docForm.content} onChange={(e) => setDocForm({ ...docForm, content: e.target.value })} rows={16} className="font-mono text-sm" />
+                        </div>
+                        <div className="flex gap-2">
+                          <Button size="sm" className="gap-2 bg-green-600 hover:bg-green-700" onClick={() => upsertDoc.mutate(docForm)} disabled={upsertDoc.isPending}>
+                            <Save className="w-3 h-3" /> Save Changes
+                          </Button>
+                          <Button size="sm" variant="ghost" onClick={() => setEditingDoc(null)}>Cancel</Button>
                         </div>
                       </CardContent>
                     </Card>
-                  ))}
+                  )}
                 </div>
               )}
 
-              {/* View doc */}
-              {viewingDoc && docDetailQuery.data && (
-                <Card className="border-border">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <CardTitle>{docDetailQuery.data.title}</CardTitle>
-                        <Badge variant="outline" className="text-xs mt-1">{docDetailQuery.data.category}</Badge>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button size="sm" variant="outline" className="gap-1" onClick={() => {
-                          setEditingDoc(viewingDoc);
-                          setViewingDoc(null);
-                          setDocForm({ title: docDetailQuery.data!.title, slug: docDetailQuery.data!.slug, content: docDetailQuery.data!.content, category: docDetailQuery.data!.category });
-                        }}>
-                          <Pencil className="w-3 h-3" /> Edit
-                        </Button>
-                        <Button size="sm" variant="ghost" onClick={() => setViewingDoc(null)}>
-                          <X className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <pre className="text-sm text-foreground whitespace-pre-wrap font-mono bg-muted/30 rounded-lg p-4 max-h-[600px] overflow-y-auto">
-                      {docDetailQuery.data.content}
-                    </pre>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Edit doc */}
-              {editingDoc && (
-                <Card className="border-primary/50 bg-primary/5">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-base">Editing: {docForm.title}</CardTitle>
-                      <Button size="sm" variant="ghost" onClick={() => setEditingDoc(null)}><X className="w-4 h-4" /></Button>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-1">
-                        <Label>Title</Label>
-                        <Input value={docForm.title} onChange={(e) => setDocForm({ ...docForm, title: e.target.value })} />
-                      </div>
-                      <div className="space-y-1">
-                        <Label>Category</Label>
-                        <Select value={docForm.category} onValueChange={(v) => setDocForm({ ...docForm, category: v })}>
-                          <SelectTrigger><SelectValue /></SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="general">General</SelectItem>
-                            <SelectItem value="planning">Planning</SelectItem>
-                            <SelectItem value="creative">Creative</SelectItem>
-                            <SelectItem value="reference">Reference</SelectItem>
-                            <SelectItem value="notes">Notes</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                    <div className="space-y-1">
-                      <Label>Content</Label>
-                      <Textarea value={docForm.content} onChange={(e) => setDocForm({ ...docForm, content: e.target.value })} rows={16} className="font-mono text-sm" />
-                    </div>
-                    <div className="flex gap-2">
-                      <Button size="sm" className="gap-2 bg-green-600 hover:bg-green-700" onClick={() => upsertDoc.mutate(docForm)} disabled={upsertDoc.isPending}>
-                        <Save className="w-3 h-3" /> Save Changes
-                      </Button>
-                      <Button size="sm" variant="ghost" onClick={() => setEditingDoc(null)}>Cancel</Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
-          )}
-
-          {/* ── ASSETS TAB */}
-          {activeTab === "assets" && (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
+              {/* Uploaded files section */}
+              {(storageFilter === "all" || storageFilter === "images" || storageFilter === "files") && filteredFiles.length > 0 && (
                 <div>
-                  <h1 className="text-2xl font-bold text-foreground">Assets</h1>
-                  <p className="text-muted-foreground mt-1">Upload images for the site. Copy the URL to use an image anywhere.</p>
+                  <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2 mt-4">Uploaded Files</h2>
+                  <div className="space-y-2">
+                    {filteredFiles.map((file) => (
+                      <Card key={file.key} className="border-border">
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between gap-4">
+                            <div className="flex items-center gap-3 flex-1 min-w-0">
+                              <FileIcon mimetype={file.mimetype} />
+                              <div className="min-w-0">
+                                <p className="font-medium text-sm text-foreground truncate">{file.filename}</p>
+                                <p className="text-xs text-muted-foreground">{formatBytes(file.size)} · {new Date(file.uploadedAt).toLocaleDateString()}</p>
+                              </div>
+                            </div>
+                            <div className="flex gap-1 flex-shrink-0">
+                              {file.mimetype.startsWith("image/") && (
+                                <a href={file.url} target="_blank" rel="noopener noreferrer">
+                                  <Button size="sm" variant="ghost" title="Preview">
+                                    <ExternalLink className="w-3 h-3" />
+                                  </Button>
+                                </a>
+                              )}
+                              <Button size="sm" variant="ghost" title="Copy URL" onClick={() => {
+                                navigator.clipboard.writeText(file.url).catch(() => {/* ignore */});
+                                toast.success("URL copied to clipboard!");
+                              }}>
+                                <Copy className="w-3 h-3" />
+                              </Button>
+                              <a href={file.url} download={file.filename}>
+                                <Button size="sm" variant="ghost" title="Download">
+                                  <Download className="w-3 h-3" />
+                                </Button>
+                              </a>
+                              <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" title="Remove from list" onClick={() => {
+                                if (confirm(`Remove "${file.filename}" from your storage list?`)) {
+                                  const updated = uploadedFiles.filter(f => f.key !== file.key);
+                                  saveUploadedFiles(updated);
+                                  toast.success("Removed from storage list.");
+                                }
+                              }}>
+                                <Trash2 className="w-3 h-3" />
+                              </Button>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
                 </div>
-                <Button size="sm" className="gap-2" onClick={() => fileInputRef.current?.click()}>
-                  <Upload className="w-4 h-4" /> Upload Image
-                </Button>
-                <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={async (e) => {
-                  const file = e.target.files?.[0];
-                  if (!file) return;
-                  const formData = new FormData();
-                  formData.append("file", file);
-                  try {
-                    const res = await fetch("/api/upload/shop-asset", { method: "POST", body: formData, credentials: "include" });
-                    const data = await res.json() as { url?: string; error?: string };
-                    if (data.url) {
-                      toast.success("Uploaded! URL copied to clipboard.");
-                      navigator.clipboard.writeText(data.url);
-                    } else {
-                      toast.error(data.error ?? "Upload failed");
-                    }
-                  } catch {
-                    toast.error("Upload failed — network error");
-                  }
-                  e.target.value = "";
-                }} />
-              </div>
-              <Card className="border-border">
-                <CardContent className="p-8 text-center text-muted-foreground">
-                  <Image className="w-8 h-8 mx-auto mb-3 opacity-40" />
-                  <p className="font-medium">Asset library coming soon.</p>
-                  <p className="text-sm mt-1">For now, use the Upload button above to upload an image. The URL will be copied to your clipboard automatically so you can paste it wherever you need it.</p>
-                </CardContent>
-              </Card>
+              )}
+
+              {/* Empty state */}
+              {filteredDocs.length === 0 && filteredFiles.length === 0 && !showNewDoc && !docsQuery.isLoading && (
+                <Card className="border-border">
+                  <CardContent className="p-8 text-center text-muted-foreground">
+                    <FolderOpen className="w-8 h-8 mx-auto mb-3 opacity-40" />
+                    <p className="font-medium">Nothing here yet.</p>
+                    <p className="text-sm mt-1">Click '+ New Text Doc' to write a document, or 'Upload File' to add an image or PDF.</p>
+                  </CardContent>
+                </Card>
+              )}
             </div>
           )}
 
-          {/* ── HOW-TO GUIDE TAB */}
-          {activeTab === "guide" && (
+          {/* ── HELP & NAVIGATION TAB */}
+          {activeTab === "help" && (
             <div className="space-y-4">
               <div>
-                <h1 className="text-2xl font-bold text-foreground">How-To Guide</h1>
+                <h1 className="text-2xl font-bold text-foreground">Help & Navigation</h1>
                 <p className="text-muted-foreground mt-1">
-                  Step-by-step instructions for everything you can do as admin. Click any section to expand it.
+                  Step-by-step instructions for everything you can do as admin. Click any section to expand it. Use the jump links in the sidebar to go straight to a topic.
                 </p>
               </div>
+
+              {/* Quick jump bar */}
+              <Card className="border-border bg-muted/30">
+                <CardContent className="p-4">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Jump to a topic</p>
+                  <div className="flex flex-wrap gap-2">
+                    {HELP_SECTIONS.map((s) => (
+                      <button
+                        key={s.anchor}
+                        onClick={() => {
+                          setOpenHelpSection(s.id);
+                          setTimeout(() => {
+                            document.getElementById(s.anchor)?.scrollIntoView({ behavior: "smooth", block: "start" });
+                          }, 50);
+                        }}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-background border border-border text-xs text-foreground hover:border-primary/50 hover:text-primary transition-colors"
+                      >
+                        <span>{s.icon}</span>
+                        <span>{s.title.replace("How to ", "")}</span>
+                      </button>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Guide sections */}
               <div className="space-y-2">
-                {GUIDE_SECTIONS.map((section) => (
-                  <GuideSection key={section.id} section={section} />
+                {HELP_SECTIONS.map((section) => (
+                  <HelpSection
+                    key={section.id}
+                    section={section}
+                    isOpen={openHelpSection === section.id}
+                    onToggle={() => setOpenHelpSection(openHelpSection === section.id ? null : section.id)}
+                  />
                 ))}
               </div>
             </div>

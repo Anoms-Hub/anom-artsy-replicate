@@ -104,5 +104,41 @@ export function registerUploadRoutes(app: Express) {
     }
   );
 
+  // Admin document/file upload — images, PDFs, text files, up to 25MB (admin only)
+  const docUpload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 25 * 1024 * 1024 },
+    fileFilter: (_req, file, cb) => {
+      const allowed = [
+        "image/png", "image/jpeg", "image/gif", "image/webp", "image/svg+xml",
+        "application/pdf",
+        "text/plain", "text/markdown",
+        "application/msword",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      ];
+      if (allowed.includes(file.mimetype)) cb(null, true);
+      else cb(new Error("Unsupported file type. Allowed: images, PDF, TXT, MD, DOC, DOCX"));
+    },
+  });
+
+  uploadRouter.post("/admin-doc", docUpload.single("file"), async (req, res) => {
+    try {
+      let user: Awaited<ReturnType<typeof sdk.authenticateRequest>> | null = null;
+      try { user = await sdk.authenticateRequest(req as any); } catch {
+        res.status(401).json({ error: "Unauthorized" }); return;
+      }
+      if (!user) { res.status(401).json({ error: "Unauthorized" }); return; }
+      if (user.role !== "admin") { res.status(403).json({ error: "Admin access required" }); return; }
+      if (!req.file) { res.status(400).json({ error: "No file provided" }); return; }
+      const { originalname, mimetype, buffer } = req.file;
+      const safeName = originalname.replace(/[^a-zA-Z0-9._-]/g, "_");
+      const key = `admin-docs/${Date.now()}_${safeName}`;
+      const { url } = await storagePut(key, buffer, mimetype);
+      res.json({ url, key, filename: originalname, mimetype, size: buffer.length });
+    } catch (err: unknown) {
+      res.status(500).json({ error: err instanceof Error ? err.message : "Upload failed" });
+    }
+  });
+
   app.use("/api/upload", uploadRouter);
 }
