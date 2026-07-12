@@ -21,6 +21,7 @@ import CustomServices from "@/pages/CustomServices";
 import Settings from "@/pages/Settings";
 import TermsOfService from "@/pages/TermsOfService";
 import Lounge from "@/pages/Lounge";
+import Admin from "@/pages/Admin";
 
 function Router() {
   return (
@@ -41,6 +42,7 @@ function Router() {
       <Route path={"/settings"} component={Settings} />
       <Route path={"/terms"} component={TermsOfService} />
       <Route path={"/lounge"} component={Lounge} />
+      <Route path={"/admin"} component={Admin} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />

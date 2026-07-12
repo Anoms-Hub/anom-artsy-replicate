@@ -30,8 +30,8 @@ import {
   isUsernameAvailable,
   getDb,
 } from "./db";
-import { shopItems, userPurchases } from "../drizzle/schema";
-import { eq, and, desc } from "drizzle-orm";
+import { shopItems, userPurchases, siteContent, adminDocuments } from "../drizzle/schema";
+import { eq, and, desc, asc } from "drizzle-orm";
 import type { ShopItem } from "../drizzle/schema";
 import { invokeLLM, type Message as LLMMessage } from "./_core/llm";
 
@@ -520,6 +520,86 @@ const anomalyRouter = router({
 });
 
 /**
+ * Admin Router — content editing, documents (admin only)
+ */
+const adminRouter = router({
+  content: router({
+    getAll: adminProcedure.query(async () => {
+      const db = await getDb();
+      if (!db) return [];
+      return db.select().from(siteContent).orderBy(asc(siteContent.page), asc(siteContent.label));
+    }),
+    set: adminProcedure
+      .input(z.object({
+        contentKey: z.string().min(1).max(256),
+        label: z.string().min(1).max(256),
+        page: z.string().min(1).max(128),
+        value: z.string(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const db = await getDb();
+        if (!db) throw new Error("Database unavailable");
+        await db.insert(siteContent).values({
+          contentKey: input.contentKey,
+          label: input.label,
+          page: input.page,
+          value: input.value,
+          updatedBy: ctx.user.id,
+        }).onDuplicateKeyUpdate({
+          set: { value: input.value, updatedBy: ctx.user.id },
+        });
+        return { success: true };
+      }),
+    getByKey: publicProcedure
+      .input(z.object({ key: z.string() }))
+      .query(async ({ input }) => {
+        const db = await getDb();
+        if (!db) return null;
+        const rows = await db.select().from(siteContent).where(eq(siteContent.contentKey, input.key)).limit(1);
+        return rows[0] ?? null;
+      }),
+  }),
+  docs: router({
+    list: adminProcedure.query(async () => {
+      const db = await getDb();
+      if (!db) return [];
+      return db.select().from(adminDocuments).orderBy(desc(adminDocuments.updatedAt));
+    }),
+    get: adminProcedure
+      .input(z.object({ slug: z.string() }))
+      .query(async ({ input }) => {
+        const db = await getDb();
+        if (!db) return null;
+        const rows = await db.select().from(adminDocuments).where(eq(adminDocuments.slug, input.slug)).limit(1);
+        return rows[0] ?? null;
+      }),
+    upsert: adminProcedure
+      .input(z.object({
+        slug: z.string().min(1).max(256),
+        title: z.string().min(1).max(256),
+        content: z.string(),
+        category: z.string().max(128).default("general"),
+      }))
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        if (!db) throw new Error("Database unavailable");
+        await db.insert(adminDocuments).values(input).onDuplicateKeyUpdate({
+          set: { title: input.title, content: input.content, category: input.category },
+        });
+        return { success: true };
+      }),
+    delete: adminProcedure
+      .input(z.object({ slug: z.string() }))
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        if (!db) throw new Error("Database unavailable");
+        await db.delete(adminDocuments).where(eq(adminDocuments.slug, input.slug));
+        return { success: true };
+      }),
+  }),
+});
+
+/**
  * Main App Router - Combines all feature routers
  */
 export const appRouter = router({
@@ -543,6 +623,7 @@ export const appRouter = router({
   owner: ownerRouter,
   shop: shopRouter,
   anomaly: anomalyRouter,
+  admin: adminRouter,
 });
 
 export type AppRouter = typeof appRouter;

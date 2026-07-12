@@ -40,7 +40,7 @@ const NODES: Record<string, Node> = {
     glowColor: "rgba(236,72,153,0.4)",
     borderColor: "border-pink-500/60",
     status: "live",
-    description: "The canonical home of all AO beings, worlds, planets, and neighborhoods. Every member who joins enters here first. The AO Universe is the ledger of record for all coin earnings, Social Good Scores, and being identities across every world in the multiverse.",
+    description: "This is home base for everyone on Sanctuary. When you join, you start here. Your coins, your being, and your Social Good Score all live here — no matter which world you visit.",
     children: ["ao-city", "creator-worlds"],
     members: 0,
   },
@@ -50,14 +50,14 @@ const NODES: Record<string, Node> = {
     id: "ao-city",
     name: "AO-City",
     tier: "world",
-    tagline: "The Canonical Capital",
+    tagline: "The Heart of the AO Universe",
     being: "The AO Symbol",
     beingEmoji: "⚡",
     color: "from-cyan-500 to-purple-500",
     glowColor: "rgba(6,182,212,0.35)",
     borderColor: "border-cyan-500/60",
     status: "live",
-    description: "AO-City is Anom Originals' canonical home world — a neon-cyberpunk metropolis where tech and nature collide. It is the first world every member enters, and the source of all Guardian power in the universe.",
+    description: "AO-City is the first place every member visits. It's a bright, neon city full of fun things to do — games, learning, art, and community. Your being lives here and grows as you explore.",
     children: ["heartfield-commons", "snack-quarter", "financial-district", "neon-gallery", "broadcast-tower", "the-core"],
     socialGoodPillar: "Community",
   },
@@ -65,14 +65,14 @@ const NODES: Record<string, Node> = {
     id: "creator-worlds",
     name: "Creator Worlds",
     tier: "world",
-    tagline: "Sovereign Creative Territories",
+    tagline: "Worlds Built by Creators",
     beingEmoji: "🌍",
     color: "from-purple-500 to-pink-500",
     glowColor: "rgba(168,85,247,0.35)",
     borderColor: "border-purple-500/60",
     status: "live",
     route: "/worlds",
-    description: "Any verified creator can build and publish their own world — a sovereign node in the AO multiverse with original beings, missions, and lore. Creator worlds run on AO infrastructure but are owned by their creators.",
+    description: "Creators can build their own worlds right here on Sanctuary. Each world has its own look, characters, and missions. If you're a creator, you can claim a spot and make it yours.",
     children: ["creator-world-1"],
   },
 
@@ -89,7 +89,7 @@ const NODES: Record<string, Node> = {
     borderColor: "border-red-500/50",
     status: "live",
     route: "/dashboard",
-    description: "The warmth district. Clifford guides new members through onboarding, orientation missions, and the coin economy. The emotional anchor of AO-City.",
+    description: "This is the friendliest spot in AO-City. Clifford the dog welcomes every new member and helps you get started — missions, coins, and making friends. A great first stop!",
     socialGoodPillar: "Community",
   },
   "snack-quarter": {
@@ -104,7 +104,7 @@ const NODES: Record<string, Node> = {
     borderColor: "border-yellow-400/50",
     status: "live",
     route: "/games",
-    description: "Chaotic-good energy. Tater Nugget hosts the Games Hub here — mini-games, coin rushes, and the Snack Vault. The primary engagement district for casual members.",
+    description: "Tater Nugget's turf! This is where all the games live. Play mini-games, earn coins, and have fun. Perfect for kids and families who want to jump right in.",
     socialGoodPillar: "Creativity",
   },
   "financial-district": {
@@ -119,7 +119,7 @@ const NODES: Record<string, Node> = {
     borderColor: "border-green-400/50",
     status: "live",
     route: "/financial-district",
-    description: "Where fiscal responsibility is taught through the coin economy. Security Bot X-9 guides members through savings, checking, credit, and the Social Good Score system.",
+    description: "Security Bot X-9 teaches kids and families about money in a fun way. Learn about saving, spending wisely, and how your good actions earn you a better score.",
     socialGoodPillar: "Education",
   },
   "neon-gallery": {
@@ -132,7 +132,7 @@ const NODES: Record<string, Node> = {
     glowColor: "rgba(236,72,153,0.3)",
     borderColor: "border-pink-500/50",
     status: "coming",
-    description: "Creator portfolios, digital art drops, custom portraits, and identity-driven visual storytelling. The creative showcase of AO-City.",
+    description: "A place to show off your art and see what other creators have made. Custom portraits, digital art, and creative projects all live here. Coming soon!",
     socialGoodPillar: "Creativity",
   },
   "broadcast-tower": {
@@ -145,7 +145,7 @@ const NODES: Record<string, Node> = {
     glowColor: "rgba(59,130,246,0.3)",
     borderColor: "border-blue-500/50",
     status: "coming",
-    description: "Home of the Pixel & Dot animated series, story arcs, and lore updates. Where the AO Universe narrative lives and grows.",
+    description: "Watch Pixel & Dot animated stories and follow along with the AO Universe adventures. New episodes and story updates will be posted here. Coming soon!",
     socialGoodPillar: "Education",
   },
   "the-core": {
@@ -160,7 +160,7 @@ const NODES: Record<string, Node> = {
     borderColor: "border-cyan-400/60",
     status: "live",
     route: "/dashboard",
-    description: "The center of AO-City and source of all Guardian power. The mission board, Social Good Credit system, and coin ledger all live here. The AO Symbol watches over everything.",
+    description: "The heart of AO-City. This is where missions are posted, coins are tracked, and your Social Good Score is kept. The AO Symbol watches over the whole city from here.",
     socialGoodPillar: "Community",
   },
   "creator-world-1": {
@@ -174,16 +174,16 @@ const NODES: Record<string, Node> = {
     borderColor: "border-gray-600/40",
     status: "creator",
     route: "/worlds",
-    description: "This node is waiting for a creator. Build your own world with original beings, missions, and lore — all running on AO infrastructure.",
+    description: "This spot is open! If you're a creator, you can build your own world here — with your own characters, missions, and story.",
   },
 };
 
 // ─── Tier colors / labels ────────────────────────────────────────────────────
 const TIER_META: Record<Tier, { label: string; sublabel: string; icon: React.ReactNode }> = {
-  universe: { label: "Universe", sublabel: "The AO multiverse — all worlds, all beings", icon: <Star className="w-4 h-4" /> },
-  world: { label: "World", sublabel: "Sovereign creative territories", icon: <Globe className="w-4 h-4" /> },
-  planet: { label: "Planet / District", sublabel: "Neighborhoods within a world", icon: <Map className="w-4 h-4" /> },
-  neighborhood: { label: "Neighborhood", sublabel: "Micro-communities within a planet", icon: <Users className="w-4 h-4" /> },
+  universe: { label: "Universe", sublabel: "Everything — all worlds and all beings", icon: <Star className="w-4 h-4" /> },
+  world: { label: "World", sublabel: "Big places to explore, like AO-City", icon: <Globe className="w-4 h-4" /> },
+  planet: { label: "Planet / District", sublabel: "Neighborhoods inside a world", icon: <Map className="w-4 h-4" /> },
+  neighborhood: { label: "Neighborhood", sublabel: "Small communities inside a district", icon: <Users className="w-4 h-4" /> },
 };
 
 // ─── Node Card ───────────────────────────────────────────────────────────────
@@ -306,8 +306,8 @@ export default function UniverseMap() {
             One Universe.<br />Infinite Worlds.
           </h2>
           <p className="text-gray-400 max-w-xl mx-auto text-sm leading-relaxed">
-            The AO Universe is the canonical home. Creators build their own worlds within it.
-            Every world has planets. Every planet has neighborhoods. Your being travels through all of them.
+            Sanctuary is made up of worlds, districts, and neighborhoods — all connected.
+            Pick a place, send your being there, earn coins, and do good things along the way.
           </p>
         </div>
 
@@ -380,8 +380,8 @@ export default function UniverseMap() {
                   <div className="flex-1 h-px bg-white/5" />
                 </div>
                 <div className="rounded-xl border border-dashed border-white/10 p-6 text-center">
-                  <p className="text-gray-500 text-sm">Neighborhoods are micro-communities within planets.</p>
-                  <p className="text-gray-600 text-xs mt-1">They unlock as planets grow. Coming in a future update.</p>
+                  <p className="text-gray-500 text-sm">Neighborhoods are small communities inside each district.</p>
+                  <p className="text-gray-600 text-xs mt-1">They open up as districts grow. More coming soon!</p>
                 </div>
               </div>
             )}
@@ -523,7 +523,7 @@ export default function UniverseMap() {
                     <Globe className="w-4 h-4 text-purple-400" />
                     <div>
                       <p className="text-sm text-white">Creator Worlds</p>
-                      <p className="text-xs text-gray-500">Sovereign Creative Territories</p>
+                      <p className="text-xs text-gray-500">Worlds Built by Creators</p>
                     </div>
                     <ChevronRight className="w-3 h-3 text-gray-600 ml-auto" />
                   </button>
@@ -558,7 +558,7 @@ export default function UniverseMap() {
                 <p className="text-sm font-bold text-yellow-300">Social Good Score</p>
               </div>
               <p className="text-xs text-gray-400 leading-relaxed">
-                Your SGS travels with you across every world in the AO Universe. Earn it through missions, games, and community contributions. Use it to unlock the Financial District's credit system.
+                Your Social Good Score follows you everywhere on Sanctuary. Earn it by completing missions, playing games, and helping the community. A higher score unlocks special rewards!
               </p>
               {!isAuthenticated && (
                 <button

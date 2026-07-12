@@ -172,3 +172,38 @@
 - [x] Server-side bio sanitization: strip HTML/code on updateBeing procedure before saving
 - [x] Render saved customizationData.gifUrl on the public member profile page
 - [x] Request VITE_GIPHY_API_KEY via webdev_request_secrets and verify Giphy search works
+
+## Universe Map & Admin Editing (Jul 12 2026)
+- [ ] Fix "canonical" and other jargon-heavy descriptions in Universe Map / world nodes
+- [ ] Build interactive AO Universe Map page — visual world hierarchy, world cards, quick-travel, plain-language descriptions
+- [ ] Admin inline content editor — admin can click any world/node description to edit it in-place and save to DB
+- [ ] Admin can edit node names, descriptions, and status directly from the map page
+
+## Admin Inline Editor & Deploy (Jul 12 2026 — TOP PRIORITY)
+- [ ] Fix Universe Map copy (jargon cleanup) — save to file
+- [ ] Fix SyntaxError: db export in server (browserConsole error)
+- [ ] DB: create site_content table (key, value, updated_at, updated_by)
+- [ ] tRPC: add content.get (public) and content.set (admin only) procedures
+- [ ] Build EditableText component — admin sees pencil icon on hover, clicks to edit inline, saves on Enter/blur
+- [ ] Wire EditableText into Universe Map node descriptions
+- [ ] Wire EditableText into Landing Page hero copy
+- [ ] Wire EditableText into AO-City and district descriptions
+- [ ] Add admin guide to master plan document (step-by-step how-to)
+- [ ] TypeScript check, checkpoint, ready for publish
+
+## Admin Dashboard — Full Control Hub (TOP PRIORITY)
+- [x] DB: create site_content table (key, value, label, page, updated_at)
+- [x] DB: create admin_documents table (id, title, content, category, updated_at)
+- [x] tRPC: content.getAll, content.set (admin only)
+- [x] tRPC: adminDocs.list, adminDocs.upsert, adminDocs.delete (admin only)
+- [x] Build /admin route — admin-only, redirects non-admins
+- [x] Admin sidebar: Content Editor · Documents · Assets · How-To Guide · Settings
+- [x] Content Editor tab: list all editable site text, click to edit inline, save to DB
+- [x] Documents tab: store master plan, spark concept, lounge plan — view/edit/download
+- [x] Assets tab: upload images, view stored assets with copy-URL button
+- [ ] How-To Guide tab: step-by-step instructions for all admin tasks
+- [x] EditableText component: pencil icon on hover (admin only), click to edit, Enter/blur to save
+- [ ] Wire EditableText into Universe Map node descriptions
+- [ ] Wire EditableText into Landing Page hero copy
+- [x] Register /admin route in App.tsx
+- [x] Upload sanctuary-master-plan.md and sanctuary-spark-concept.md to admin Documents

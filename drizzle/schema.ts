@@ -487,3 +487,33 @@ export const userPurchasesRelations = relations(userPurchases, ({ one }) => ({
     references: [shopItems.id],
   }),
 }));
+
+/**
+ * Site Content — editable text blocks managed by admin via inline editor
+ */
+export const siteContent = mysqlTable("site_content", {
+  id: int("id").autoincrement().primaryKey(),
+  contentKey: varchar("contentKey", { length: 256 }).notNull().unique(),
+  label: varchar("label", { length: 256 }).notNull(),
+  page: varchar("page", { length: 128 }).notNull(),
+  value: text("value").notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  updatedBy: int("updatedBy"),
+});
+export type SiteContent = typeof siteContent.$inferSelect;
+export type InsertSiteContent = typeof siteContent.$inferInsert;
+
+/**
+ * Admin Documents — planning docs, concept docs, guides stored in admin panel
+ */
+export const adminDocuments = mysqlTable("admin_documents", {
+  id: int("id").autoincrement().primaryKey(),
+  title: varchar("title", { length: 256 }).notNull(),
+  slug: varchar("slug", { length: 256 }).notNull().unique(),
+  content: text("content").notNull(),
+  category: varchar("category", { length: 128 }).notNull().default("general"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type AdminDocument = typeof adminDocuments.$inferSelect;
+export type InsertAdminDocument = typeof adminDocuments.$inferInsert;
